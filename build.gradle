@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+plugins {
+    id 'com.github.hierynomus.license' version '0.13.1'
+}
+
+final VERSION = new File('version').getText('UTF-8')
+
+logger.lifecycle("Building Java Memory Assistant version '${VERSION}'")
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
+
+allprojects {
+    apply plugin: 'license'
+
+    license {
+        header rootProject.file('quality/licensing/HEADER')
+        strictCheck true
+        includes(['**/*.java', '**/*.gradle'])
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+            gradle = 'SLASHSTAR_STYLE'
+        }
+        ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    }
+
+    group = 'com.sap.jma'
+    version = "${VERSION}"
+}
+
+subprojects {
+    apply plugin: 'checkstyle'
+    apply plugin: 'findbugs'
+    apply plugin: 'jacoco'
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
+    checkstyle {
+        configFile = rootProject.file('quality/checkstyle/checkstyle.xml')
+        toolVersion = "7.4"
+        ignoreFailures = false
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << "-Xlint:unchecked" //<< "-Werror"
+    }
+
+    tasks.withType(FindBugs) {
+        reportLevel = 'high'
+        reports {
+            xml.enabled false
+            html.enabled true
+        }
+    }
+
+    jacoco {
+        reportsDir = file("${buildDir}/reports/jacoco")
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled = true
+            html.enabled = true
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    check.dependsOn jacocoTestReport
+}

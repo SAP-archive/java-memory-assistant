@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+description = 'java-memory-assistant'
+
+dependencies {
+    testCompile project(':test-api')
+}
+
+jar {
+    manifest {
+        attributes("Premain-Class": "com.sap.jma.Agent",
+                "Agent-Class": "com.sap.jma.Agent",
+                "Can-Redefine-Classes": "false",
+                "Can-Retransform-Classes": "false",
+                "Can-Set-Native-Method-Prefix": "false")
+    }
+}
+
+/*
+ * Add check to prevent usage of imports that are neither JDK, nor shipped by us
+ */
+task agentMainCheckstyleCheck (type: Checkstyle) {
+    configFile = 'quality/checkstyle/checkstyle.xml' as File
+    source 'src/main'
+    include '**/*.java'
+    classpath = files()
+    ignoreFailures = false
+    configProperties = [ 'config_loc': configFile.parent ]
+}
+
+check.dependsOn agentMainCheckstyleCheck

@@ -1,0 +1,347 @@
+#!groovy
+
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+import groovy.json.JsonSlurperClassic
+
+/*
+ * Release pipeline for HeapDumpAgent
+ *
+ * Prerequisites:
+ *  - User 'hcpperf-bot' is added as administrator to the repo
+ *  - The branch being built contains a file called 'version' that contains a major-minor-micro version
+  *   without any other characters in it (not even white spaces)
+ *  - The jenkins installation has a secret-text credentials named HCPPERF_BOT_RELEASE_CREDENTIALS
+ *    that contains a valid GitHub OAuth token for 'hcpperf-bot' that allows the modification of repos
+ *  - The Jenkinsfile is *not* run in Sandbox mode (otherwise prepare for an excruciating sequence of
+ *    failures, allow script XYZ, rinse and repeat)
+ *  - The index.yml file exists in the branch called 'repository' and it contains at least the initial ---
+ *    characters
+ */
+
+def assertFileExists(filePath) {
+    if (!fileExists(filePath)) {
+        error("File '${filePath}' does not exist")
+    }
+}
+
+def getPromotedVersion(currentRelease) {
+    def matcher = currentRelease =~ /^(\d+)\.(\d+)\.(\d+)(?:-SNAPSHOT)?$/
+    if (!matcher) {
+        error("Cannot parse version '${currentRelease}'")
+    }
+
+    def major = "${matcher[0][1]}".toInteger()
+    def minor = "${matcher[0][2]}".toInteger()
+    def micro = "${matcher[0][3]}".toInteger()
+
+    /*
+     * Reset matcher as it is not serializable, which creates issues when
+     * Jenkins wants to serialize the state of the node
+     */
+    matcher = null
+
+    final promotionType = getPromotionType()
+    switch (promotionType) {
+        case 'MAJOR':
+            major += 1
+            minor = 0
+            micro = 0
+            break;
+        case 'MINOR':
+            minor += 1
+            micro = 0
+            break;
+        case 'MICRO':
+            micro += 1
+            break;
+    }
+
+    return "${major}.${minor}.${micro}"
+}
+
+/*
+ * From which branch to build and release. Default 'master'.
+ */
+
+def getReleaseFromBranch() {
+    return "${env.RELEASE_FROM_BRANCH ? env.RELEASE_FROM_BRANCH : 'master'}"
+}
+
+def getBuilderUser() {
+    return "${env.BUILDER_USER ? env.BUILDER_USER : 'hcpperf-bot'}"
+}
+
+def getBuilderEmail() {
+    return "${env.BUILDER_EMAIL ? env.BUILDER_EMAIL : 'DL_53A1A6EBDF15DB4C12000016@exchange.sap.corp'}"
+}
+
+def getRepositoryOwner() {
+    return "${env.OWNER ? env.OWNER : 'hcpperf'}"
+}
+
+def getGitHubEndpoint() {
+    return "${env.GITHUB_ENDPOINT ? env.GITHUB_ENDPOINT : 'https://github.infra.hana.ondemand.com'}"
+}
+
+def isPreRelease() {
+    return "${env.PRE_RELEASE}".toBoolean();
+}
+
+def getPromotionType() {
+    def promotionType = "${env.PROMOTION_TYPE ? env.PROMOTION_TYPE : 'MICRO'}".toUpperCase()
+
+    if (!(promotionType in ['MAJOR', 'MINOR', 'MICRO'])) {
+        error("Unrecognized promotion type '${promotionType}': valid values are 'MAJOR', 'MINOR', 'MICRO'")
+    }
+
+    return promotionType
+}
+
+def addToken(endpoint, token) {
+    def matcher = endpoint =~ /^(http[s]?[:]\/\/|[^@]*@)(.*)$/
+    try {
+        if (!matcher) {
+            error("Cannot parse GitHub endpoint '${endpoint}'")
+        }
+
+        return "${matcher[0][1]}${token}@${matcher[0][2]}"
+    } finally {
+        /*
+         * Reset matcher as it is not serializable, which creates issues when
+         * Jenkins wants to serialize the state of the node
+         */
+        matcher = null
+    }
+}
+
+def setupRepo(gitHubEndpoint, owner, branch) {
+    git url: "${gitHubEndpoint}/${owner}/heap-dump-agent", branch: "${branch}"
+    // Setup identity
+    shell "git config user.name \"${getBuilderUser()}\""
+    shell "git config user.email \"${getBuilderEmail()}\""
+
+    // Setup auth for push using token
+    withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+        shell "git config remote.origin.url ${addToken(gitHubEndpoint, "${TOKEN}")}/${owner}/heap-dump-agent"
+    }
+}
+
+@NonCPS
+def parseJson(text) {
+    return new groovy.json.JsonSlurperClassic().parseText(text)
+}
+
+def shell(String command) {
+    return sh(
+            script: command,
+            returnStdout: true
+    ).trim()
+}
+
+def jdksRepository() {
+    return "${env.JDKS_REPOSITORY ? env.JDKS_REPOSITORY : 'https://github.infra.hana.ondemand.com/hcpperf/jdks-for-validation.git'}"
+}
+
+def jdksRepositoryBranch() {
+    return "${env.JDKS_REPOSITORY_BRANCH ? env.JDKS_REPOSITORY_BRANCH : 'linux-x86_64'}"
+}
+
+// TODO Lock branch to prevent merges in parallel with builds
+node {
+
+    /*
+     * Steps:
+     *   1) Add tentative commit (detach mode?) that updates version in GAV
+     *   2) Try full build without archiving or publishing stuff anywhere
+     *   3) Tag tentative commit, push tag to repo, push tentative commit to release-from branch
+     *   4) Update version to x-SNAPSHOT
+     */
+    final jdksRepository = jdksRepository()
+
+    final jdksRepositoryBranch = jdksRepositoryBranch()
+
+    final gradleHome = tool name: 'default', type: 'hudson.plugins.gradle.GradleInstallation'
+
+    final owner = getRepositoryOwner()
+
+    final tagName
+    final releaseCommit
+    final agentJarName
+    final agentJarPath
+
+    stage('Setup workspace') {
+        // clean workspace
+        deleteDir()
+
+        setupRepo(gitHubEndpoint, owner, getReleaseFromBranch())
+    }
+
+    stage('Download JDKs') {
+
+        dir('test-e2e/src/test/resources/jdks') {
+            /*
+             * Get rid of skeleton folder and .gitkeep file, or git will refuse to clone in there
+             */
+            deleteDir()
+        }
+
+        dir('test-e2e/src/test/resources') {
+            sh """
+                git clone ${jdksRepository} jdks --single-branch --branch ${jdksRepositoryBranch}
+            """
+        }
+    }
+
+    stage('Build') {
+        // Read file version and remove '-SNAPSHOT' suffix
+        final originalVersion = readFile file: 'version', encoding: 'UTF-8'
+
+        /*
+         * Parse version. In some cases, e.g., release branches, it may be
+         * the case that the '-SNAPSHOT' suffix is missing
+         */
+        final release = "${getPromotedVersion(originalVersion)}"
+
+        writeFile file: 'version', text: "${release}"
+        stash includes: 'version', name: 'version'
+
+        // Create new temp commit for build
+        shell 'git add version'
+        shell "git commit -m \"Release ${release}\""
+        releaseCommit = shell 'git rev-parse HEAD'
+
+        echo "Building version '${release}'"
+        echo '--- Begin build ---'
+        shell "${gradleHome}/bin/gradle clean build"
+        echo '--- End build ---'
+
+        agentJarName = "heap-dump-agent-${release}.jar"
+        agentJarPath = "agent/build/libs/${agentJarName}"
+
+        assertFileExists(agentJarPath)
+
+        stash includes: agentJarPath, name: 'agentJar'
+
+        writeFile file: 'version', text: "${release}-SNAPSHOT"
+        shell 'git add version'
+        shell "git commit -m \"Begin snapshot ${release}-SNAPSHOT\""
+        final releaseBranchHeadCommit = shell 'git rev-parse HEAD'
+
+        tagName = "v${release}"
+        final relBranchName = "rel-${tagName}"
+
+        // Push commit to release branch
+        withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+            shell "git push origin ${releaseBranchHeadCommit}:refs/heads/${relBranchName}"
+        }
+        echo "Release branch '${relBranchName}' pushed to repository"
+    }
+
+    stage('Release to GitHub') {
+        assertFileExists(agentJarPath)
+
+        /*
+         * Create GitHub release
+         * See https://developer.github.com/v3/repos/releases/#create-a-release
+         */
+        final createReleaseStatusCode =
+                withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+                    shell("curl --silent -X POST --data '{ \"tag_name\" : \"${tagName}\", \"target_commitish\" : \"${releaseCommit}\" , \"name\" : \"${tagName}\", \"prerelease\" : ${isPreRelease()} }' --write-out '%{http_code}' --output createReleaseResponse ${addToken(gitHubEndpoint, "${TOKEN}")}/api/v3/repos/${owner}/heap-dump-agent/releases 2>/dev/null")
+                }
+
+        if (createReleaseStatusCode.toInteger() != 201) {
+            error("Unexpected response when creating the release: ${createReleaseStatusCode}")
+        }
+
+        final createReleaseResponse = parseJson(readFile(file: 'createReleaseResponse', encoding: 'UTF-8'))
+        final uploadEndpoint = createReleaseResponse['upload_url'].replace('{?name,label}', '?name')
+
+        /*
+         * Upload Jar
+         * See https://developer.github.com/v3/repos/releases/#upload-a-release-asset
+         */
+        final uploadJarStatusCode =
+                withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+                    shell("curl --silent -X POST -F file=@${agentJarPath} --write-out '%{http_code}' --output uploadJarResponse ${addToken(uploadEndpoint, "${TOKEN}")}=${agentJarName} 2>/dev/null")
+                }
+
+        if (uploadJarStatusCode.toInteger() != 201) {
+            error("Unexpected response when uploading the Jar file to the release: ${uploadJarStatusCode}")
+        }
+
+        final uploadJarResponse = parseJson(readFile(file: 'uploadJarResponse', encoding: 'UTF-8'))
+        final jarDownloadUrl = uploadJarResponse['browser_download_url']
+
+        writeFile file: 'jar_download_url', text: "${jarDownloadUrl}"
+        stash includes: 'jar_download_url', name: 'jar_download_url'
+    }
+}
+
+stage('Update built branch') {
+    node {
+        deleteDir()
+
+        final owner = getRepositoryOwner()
+
+        setupRepo(gitHubEndpoint, owner, getReleaseFromBranch())
+
+        unstash 'version'
+        final release = readFile file: 'version', encoding: 'UTF-8'
+
+        final promotedVersion = "${getPromotedVersion(release)}-SNAPSHOT"
+
+        echo "Promoting to version '${promotedVersion}'"
+
+        // Create new temp commit for build
+        writeFile file: 'version', text: "${promotedVersion}"
+        shell 'git add version'
+        shell "git commit -m \"Begin snapshot ${promotedVersion}\""
+
+        // Push current HEAD to remote's master
+        withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+            shell "git push origin HEAD:${getReleaseFromBranch()}"
+        }
+    }
+}
+
+// Add version to repository index.yml
+stage('Buildpack repository') {
+    node {
+        deleteDir()
+
+        final owner = getRepositoryOwner()
+
+        setupRepo(gitHubEndpoint, owner, 'repository')
+
+        unstash 'jar_download_url'
+        unstash 'version'
+
+        final release = readFile file: 'version', encoding: 'UTF-8'
+        final jarDownloadUrl = readFile file: 'jar_download_url', encoding: 'UTF-8'
+
+        def currentContent = readFile file: 'index.yml', encoding: 'UTF-8'
+
+        /*
+         * Append latest entry to registry
+         *
+         * TODO Do proper parsing of the YAML file and make sure that:
+         * 1) We keep comments where they are
+         * 2) We sort versions according to the natural order, e.g., 0.0.1, 0.0.11, 0.1.0
+         */
+        writeFile file: 'index.yml', text: "${currentContent}\n${release}: ${jarDownloadUrl}"
+
+        shell 'git add index.yml'
+        shell "git commit -m \"Publish version ${release}\""
+
+        withCredentials([string(credentialsId: 'HCPPERF_BOT_RELEASE_CREDENTIALS', variable: 'TOKEN')]) {
+            shell 'git push origin HEAD:repository'
+        }
+
+        echo "Version ${release} added to index.yml in 'repository' branch"
+    }
+}
