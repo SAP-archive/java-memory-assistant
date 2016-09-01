@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+description = 'test-api'
+
+dependencies {
+    compile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    compile group: 'org.jmock', name: 'jmock', version: '2.8.2'
+    compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+
+    compile group: 'org.zeroturnaround', name: 'zt-exec', version: '1.9'
+
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    compile group: 'com.google.guava', name: 'guava', version: '17.0'
+}

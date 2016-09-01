@@ -1,0 +1,1 @@
+type nul > %TARGET_FILE_FOLDER%\hook_invoked
