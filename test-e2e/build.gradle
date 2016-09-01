@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+description = 'test-e2e'
+
+import org.gradle.internal.os.OperatingSystem
+
+sourceSets {
+    test {
+        resources {
+            exclude 'jdks/**'
+        }
+    }
+}
+
+dependencies {
+    compile project(':java-memory-assistant')
+    compile project(':test-api')
+    compile project(':test-app')
+
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+}
+
+test {
+    // Skip itests
+    exclude '**/*ITest.class'
+}
+
+def dumpsDir = "${project.buildDir}/oom"
+def jarsDir = "${project.buildDir}/jars"
+
+task copyAgentJar(type: Copy) {
+    description 'Copy agent JAR to build directory'
+    from project(':java-memory-assistant').jar
+    into jarsDir
+}
+
+task copyTestAppJar(type: Copy) {
+    description 'Copy test-app JAR to build directory'
+    from project(':test-app').jar
+    into jarsDir
+}
+
+task itest
+
+def javaExecutable = 'jre/bin/java';
+if (OperatingSystem.current().isWindows()) {
+    javaExecutable += '.exe'
+}
+
+file('src/test/resources/jdks/')
+        .listFiles()
+        .findAll { folder -> new File(folder, javaExecutable).isFile() }
+        .each { jdkRoot ->
+    final taskName = "itest-${jdkRoot.name}"
+    final javaExecutableFile = new File(jdkRoot, javaExecutable)
+
+    tasks.create(name: taskName, type: Test) {
+        include '**/*ITest.class'
+        executable javaExecutableFile
+        systemProperty 'version', "${version}"
+        systemProperty 'jvm', "${jdkRoot.name}"
+        systemProperty 'dumpsDir', dumpsDir
+        systemProperty 'jarsDir', jarsDir
+        systemProperty 'javaExec', javaExecutableFile.absolutePath
+    }
+
+    itest.dependsOn taskName
+}
+
+check.dependsOn itest
+itest.mustRunAfter test
+itest.dependsOn copyAgentJar
+itest.dependsOn copyTestAppJar

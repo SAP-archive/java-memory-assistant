@@ -1,0 +1,17 @@
+/*
+ * Copyright (c) 2017 SAP SE or an SAP affiliate company. All rights reserved.
+ * This file is licensed under the Apache Software License, v. 2 except as noted
+ * otherwise in the LICENSE file at the root of the repository.
+ */
+
+rootProject.name = 'reactor'
+
+include ':java-memory-assistant'
+include ':test-api'
+include ':test-app'
+include ':test-e2e'
+
+project(':java-memory-assistant').projectDir = "${rootDir}/agent" as File
+project(':test-api').projectDir = "${rootDir}/test-api" as File
+project(':test-app').projectDir = "${rootDir}/test-app" as File
+project(':test-e2e').projectDir = "${rootDir}/test-e2e" as File
