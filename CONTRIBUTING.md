@@ -2,7 +2,7 @@
 
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
-Please note we have a [code of conduct](code-of-conduct), please follow it in all your interactions with the project.
+Please note we have a [code of conduct](#code-of-conduct), please follow it in all your interactions with the project.
 
 ## Contribute Code
 
@@ -10,10 +10,10 @@ You are welcome to contribute code to the Java Memory Assistant in order to fix 
 
 There are three important things to know:
 
-1. You must be aware of the Apache License (which describes contributions) and agree to the Contributors License Agreement.
+1. You must be aware of the Apache License (which describes contributions) and agree to the Contributors License Agreement (CLA).
    This is common practice in all major Open Source projects. To make this process as simple as possible, we are using the [CLA assistant](https://cla-assistant.io/) for individual contributions.
    CLA assistant is an open source tool that integrates with GitHub very well and enables a one-click-experience for accepting the CLA.
-   For company contributors, [special rules apply](company-contributors).
+   For company contributors, [special rules apply](#company-contributors).
    See the respective section below for details.
 2. There are several requirements regarding code style, quality, and product standards which need to be met (we also have to follow them).
    The respective section below gives more details on the coding guidelines.
@@ -28,13 +28,14 @@ This a checklist of things to keep in your mind when opening pull requests for t
 
 0. Validate your pull request with a local build using as many supported JDKs you can for running
    the end-to-end tests
-1. Ensure all unused dependencies are removed opening the pull request
-2. Make sure any added dependency is licensed under Apache v2.0 license
-3. Strive for very high unit-test coverage and favor testing productive code over mocks
+1. Make sure you have signed the [Contributor License Agreement](#contributor-license-agreement)
+2. Ensure all unused dependencies are removed opening the pull request
+3. Make sure any added dependency is licensed under Apache v2.0 license
+4. Strive for very high unit-test coverage and favor testing productive code over mocks
    (mock in depth wherever possible)
-4. When adding a new functionality to the agent, write an end-to-end test for it
+5. When adding a new functionality to the agent, write an end-to-end test for it
    (package `test-e2e`)
-5. Update the README.md with details of changes to the configuration options
+6. Update the README.md with details of changes to the configuration options
 
 Pull requests will be tested and validated by maintainers. In case small changes are needed (e.g.,
 correcting typos), the maintainers may fix those issues themselves. In case of larger issues, you
@@ -55,7 +56,7 @@ If employees of a company contribute code, in **addition** to the individual agr
 This is mainly for the protection of the contributing employees.
 
 A company representative authorized to do so needs to download, fill, and print
-the [Corporate Contributor License Agreement](https://github.com/SAP/openui5/blob/master/docs/SAP Corporate Contributor License Agreement.pdf) form. Then either:
+the [Corporate Contributor License Agreement](docs/SAP%20Corporate%20Contributor%20License%20Agreement.pdf) form. Then either:
 
 -   Scan it and e-mail it to [opensource@sap.com](mailto:opensource@sap.com)
 -   Fax it to: +49 6227 78-45813
@@ -121,7 +122,7 @@ further defined and clarified by project maintainers.
 ### Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
+reported by contacting the project team at [sap_cp_performance [at] sap.com](mailto:sap_cp_performance@sap.com). All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
