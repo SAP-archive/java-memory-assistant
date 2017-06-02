@@ -10,7 +10,7 @@ import com.sap.jma.logging.Logger;
 import java.lang.instrument.Instrumentation;
 
 /**
- * Entry class for starting the HeapDumpAgent.
+ * Entry class for starting the JavaMemoryAssistant.
  */
 public class Agent {
 
@@ -30,7 +30,7 @@ public class Agent {
 
     if (agentArgs != null) {
       logger.warning(
-          "HeapDumpAgent does not accept configurations through -javaagent;"
+          "JavaMemoryAssistant does not accept configurations through -javaagent;"
               + " use System properties instead");
     }
 
@@ -39,14 +39,14 @@ public class Agent {
     try {
       agent.start(agentArgs == null || agentArgs.trim().isEmpty() ? null : agentArgs, logger);
     } catch (final Exception ex) {
-      logger.error("HeapDumpAgent cannot start", ex);
+      logger.error("JavaMemoryAssistant cannot start", ex);
     }
   }
 
   private void start(final String agentArgs, final Logger logger) throws Exception {
     if (agentArgs != null) {
       logger.warning(
-          "HeapDumpAgent does not accept configurations "
+          "JavaMemoryAssistant does not accept configurations "
               + "through -javaagent; use System properties instead");
     }
 
@@ -92,7 +92,7 @@ public class Agent {
   private void registerShutDownHook(final Runnable runnable) {
     final Thread shutdownThread = new Thread(runnable);
     shutdownThread.setPriority(Thread.MAX_PRIORITY);
-    shutdownThread.setName("HeapDumpAgent ShutdownHook");
+    shutdownThread.setName("JavaMemoryAssistant ShutdownHook");
 
     Runtime.getRuntime().addShutdownHook(shutdownThread);
   }

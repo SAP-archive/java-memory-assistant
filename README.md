@@ -139,7 +139,7 @@ The Java Memory Assistant supports the following tokens:
 <tr>
 <td>%uuid%</td>
 <td>forbidden</td>
-<td>A random [UUID](https://www.ietf.org/rfc/rfc4122.txt) of 128 bits, calculated as: <code>java.util.UUID.randomUUID().toString()</code>.</td>
+<td>A random <a href="https://www.ietf.org/rfc/rfc4122.txt">UUID</a> of 128 bits, calculated as: <code>java.util.UUID.randomUUID().toString()</code>.</td>
 </tr>
 <tr>
 <td>%ts% or %ts:[date format]%</td>

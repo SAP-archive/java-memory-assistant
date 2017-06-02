@@ -36,7 +36,7 @@ class MBeanMonitor extends AbstractMonitor {
     this(heapDumpCreator, configuration, new Callable<ScheduledExecutorService>() {
       @Override
       public ScheduledExecutorService call() throws Exception {
-        return Executors.newSingleThreadScheduledExecutor(ThreadFactories.deamons("HeapDumpAgent"));
+        return Executors.newSingleThreadScheduledExecutor(ThreadFactories.deamons("JavaMemoryAssistant"));
       }
     }, Logger.Factory.get(MBeanMonitor.class));
   }

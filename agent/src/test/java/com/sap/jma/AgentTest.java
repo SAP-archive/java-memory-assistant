@@ -38,7 +38,7 @@ public class AgentTest {
 
     Agent.initAgent(null, logger);
 
-    verify(logger).error(argThat(is("HeapDumpAgent cannot start")),
+    verify(logger).error(argThat(is("JavaMemoryAssistant cannot start")),
         argThat(allOf(isA(IllegalArgumentException.class),
             hasMessageThat(is("The value 'ja' is invalid for the 'jma.enabled' property: "
                 + "'ja' is not a valid boolean")))));
@@ -52,7 +52,7 @@ public class AgentTest {
 
     Agent.initAgent(null, logger);
 
-    verify(logger).error(argThat(is("HeapDumpAgent cannot start")),
+    verify(logger).error(argThat(is("JavaMemoryAssistant cannot start")),
         argThat(allOf(isA(IllegalArgumentException.class),
             hasMessageThat(is("The value 'YOLO' is invalid for the 'jma.log_level' property: "
                 + "allowed values are: OFF, ERROR, INFO, WARNING, DEBUG")))));
@@ -67,7 +67,7 @@ public class AgentTest {
 
     Agent.initAgent(null, logger);
 
-    verify(logger).error(argThat(is("HeapDumpAgent cannot start")),
+    verify(logger).error(argThat(is("JavaMemoryAssistant cannot start")),
         argThat(allOf(isA(IllegalArgumentException.class),
             hasMessageThat(is("The value '12h' is invalid for the 'jma.max_frequency' "
                 + "property: it must follow the Java pattern '(\\d+)/(\\d*)(ms|s|m|h)'")))));
@@ -81,7 +81,7 @@ public class AgentTest {
 
     Agent.initAgent(null, logger);
 
-    verify(logger).error(argThat(is("HeapDumpAgent cannot start")),
+    verify(logger).error(argThat(is("JavaMemoryAssistant cannot start")),
         argThat(allOf(isA(IllegalArgumentException.class),
             hasMessageThat(is("The value '4' is invalid for the 'jma.check_interval' property: "
                 + "it must follow the Java pattern '(\\d*\\.?\\d*\\d)(ms|s|m|h)'")))));
@@ -104,7 +104,7 @@ public class AgentTest {
 
     Agent.initAgent(null, logger);
 
-    verify(logger).error(argThat(is("HeapDumpAgent cannot start")),
+    verify(logger).error(argThat(is("JavaMemoryAssistant cannot start")),
         argThat(allOf(isA(IllegalArgumentException.class),
             hasMessageThat(is("The value '%hostname%' is invalid for the 'jma.heap_dump_name' "
                 + "property: the token '%hostname%' (position 0 to 9) is unknown")))));
