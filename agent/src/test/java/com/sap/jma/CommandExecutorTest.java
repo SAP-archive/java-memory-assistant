@@ -273,6 +273,20 @@ public class CommandExecutorTest {
   }
 
   @Test
+  public void testExecuteOnShutdownEmptyCommandInterpreter() throws Exception {
+    doReturn("").when(configuration).getCommandInterpreter();
+
+    doReturn(process).when(subject).startProcess(anyString());
+
+    doReturn("echo").when(configuration).getExecuteOnShutDown();
+
+    subject.executeOnShutdownCommand();
+
+    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(process).waitFor();
+  }
+
+  @Test
   public void testExecuteOnShutdownNoCommand() throws Exception {
     subject.executeOnShutdownCommand();
 

@@ -53,11 +53,11 @@ class CommandExecutor {
 
     final int exitCode;
     try {
-      final Process process;
       final List<String> commandTokens = new ArrayList<>();
 
-      if (configuration.getCommandInterpreter() != null) {
-        commandTokens.add(configuration.getCommandInterpreter());
+      final String commandInterpreter = configuration.getCommandInterpreter();
+      if (commandInterpreter != null && !commandInterpreter.isEmpty()) {
+        commandTokens.add(commandInterpreter);
       }
 
       commandTokens.add(normalizedCommand);
