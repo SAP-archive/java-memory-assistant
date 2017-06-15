@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-abstract class AbstractMonitor {
+abstract class Monitor {
 
   protected final Logger logger;
 
@@ -22,8 +22,8 @@ abstract class AbstractMonitor {
   private final Configuration configuration;
   private final List<Date> executionHistory;
 
-  AbstractMonitor(final HeapDumpCreator heapDumpCreator,
-                            final Configuration configuration, final Logger logger) {
+  Monitor(final HeapDumpCreator heapDumpCreator,
+          final Configuration configuration, final Logger logger) {
     this.logger = logger;
 
     this.heapDumpCreator = heapDumpCreator;
@@ -35,14 +35,13 @@ abstract class AbstractMonitor {
     return configuration;
   }
 
-  synchronized void triggerHeapDump() throws Exception {
+  synchronized boolean triggerHeapDump() throws Exception {
     final boolean isFrequencyEnabled = configuration.getMaxFrequency() != null;
 
     final Date now = getCurrentDate();
     if (isFrequencyEnabled && !configuration.getMaxFrequency()
         .canPerformExecution(executionHistory, now)) {
-      logger.warning("Cannot create heap dump due to maximum frequency restrictions");
-      return;
+      return false;
     }
 
     heapDumpCreator.createHeapDump(now);
@@ -51,6 +50,8 @@ abstract class AbstractMonitor {
       executionHistory.add(now);
       configuration.getMaxFrequency().filterToRelevantEntries(executionHistory, now);
     }
+
+    return true;
   }
 
   // VisibleForTesting

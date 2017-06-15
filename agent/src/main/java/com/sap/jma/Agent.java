@@ -61,7 +61,7 @@ public class Agent {
 
     final CommandExecutor commandExecutor = new CommandExecutor(configuration);
 
-    final AbstractMonitor heapDumpMonitor =
+    final Monitor heapDumpMonitor =
         new MBeanMonitor(new HeapDumpCreator(configuration, commandExecutor), configuration);
 
     // Parallelize hooks to optimize exec time (all hooks are run in parallel by the JVM)

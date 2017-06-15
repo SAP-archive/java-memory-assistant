@@ -6,7 +6,8 @@
 
 package com.sap.jma;
 
-import com.sap.jma.concurrent.ThreadFactories;
+import static com.sap.jma.concurrent.ThreadFactories.deamons;
+
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.AbsoluteUsageThresholdConditionImpl;
 import com.sap.jma.vms.IncreaseOverTimeFrameThresholdConditionImpl;
@@ -23,7 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class MBeanMonitor extends AbstractMonitor {
+class MBeanMonitor extends Monitor {
 
   private final List<JavaVirtualMachine.UsageThresholdCondition> memoryPoolsConditions =
       new ArrayList<>();
@@ -36,7 +37,7 @@ class MBeanMonitor extends AbstractMonitor {
     this(heapDumpCreator, configuration, new Callable<ScheduledExecutorService>() {
       @Override
       public ScheduledExecutorService call() throws Exception {
-        return Executors.newSingleThreadScheduledExecutor(ThreadFactories.deamons("JavaMemoryAssistant"));
+        return Executors.newSingleThreadScheduledExecutor(deamons("JavaMemoryAssistant"));
       }
     }, Logger.Factory.get(MBeanMonitor.class));
   }
@@ -211,8 +212,6 @@ class MBeanMonitor extends AbstractMonitor {
 
   // VisibleForTesting
   void runChecks() {
-    logger.debug("Starting check of thresholds for configured memory pools");
-
     final List<String> reasons = new LinkedList<>();
     for (final JavaVirtualMachine.UsageThresholdCondition condition : memoryPoolsConditions) {
       try {
@@ -223,24 +222,26 @@ class MBeanMonitor extends AbstractMonitor {
     }
 
     if (!reasons.isEmpty()) {
-      final StringBuilder sb = new StringBuilder("Triggering heap dump because:");
+      final StringBuilder sb = new StringBuilder("Heap dump triggered because:");
       for (final String reason : reasons) {
         sb.append("\n* ");
         sb.append(reason);
       }
 
-      logger.info(sb.toString());
-
+      boolean printCause = true;
       try {
-        triggerHeapDump();
-
-        logger.info("Heap dump completed");
+        printCause = triggerHeapDump();
+        if (!printCause) {
+          logger.warning("Cannot create heap dump due to maximum frequency restrictions");
+        }
       } catch (final Exception ex) {
         logger.error("Error while triggering heap dump", ex);
+      } finally {
+        if (printCause) {
+          logger.info(sb.toString());
+        }
       }
     }
-
-    logger.debug("Check of thresholds for configured memory pools done");
   }
 
   private class HeapDumpCheck implements Runnable {
@@ -248,9 +249,13 @@ class MBeanMonitor extends AbstractMonitor {
     @Override
     public void run() {
       try {
+        logger.debug("Starting check of thresholds for configured memory pools");
+
         runChecks();
+
+        logger.debug("Check of thresholds for configured memory pools done");
       } catch (final Throwable th) {
-        logger.error("An error occurred while running memory usage checks", th);
+        logger.error("An error occurred while running memory pools usage checks", th);
 
         if (th instanceof Error) {
           throw (Error) th;
