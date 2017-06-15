@@ -26,6 +26,8 @@ class HeapDumpNameFormatter {
       + "%([^%]|%%)+%(?!%)|"
       // Matches a malformed token, e.g., "%aabb", "%aa%%" or "%%%bb"
       + "%([^%]|%%)*$");
+  private static final Pattern ENVIRONMENT_CONFIGURATION =
+      Pattern.compile("(?:(\\w+)(?:\\[(\\d+)?,(\\d+)?])?)?");
 
   private final List<Part> parts;
   private final String hostName;
@@ -162,10 +164,14 @@ class HeapDumpNameFormatter {
     ENVIRONMENT_VARIABLE("env", ConfigurationMode.REQUIRED) {
       @Override
       protected void validateConfiguration(final String configuration) {
-        /*
-         * Every value should be alright. If the environment variable is not set,
-         * we will output blank
-         */
+        if (configuration == null || configuration.isEmpty()) {
+          return;
+        }
+
+        if (!ENVIRONMENT_CONFIGURATION.matcher(configuration).matches()) {
+          throw new IllegalArgumentException(
+              String.format("it must match the '%s' pattern", ENVIRONMENT_CONFIGURATION.pattern()));
+        }
       }
     },
 
@@ -258,7 +264,7 @@ class HeapDumpNameFormatter {
                     SimpleDateFormat.class.getName()));
           }
 
-          throw ex;
+          throw new IllegalTokenConfigurationException(ex.getMessage());
         }
       }
 
@@ -267,13 +273,46 @@ class HeapDumpNameFormatter {
         case RANDOM_UUID:
           return new VerbatimToken(tokenType);
         case ENVIRONMENT_VARIABLE: {
-          final String envValue = System.getenv(tokenConfiguration);
-          return new AbstractToken(tokenType) {
-            final String value = envValue == null ? "" : envValue;
+          final Matcher envValueMatcher = ENVIRONMENT_CONFIGURATION.matcher(tokenConfiguration);
+          if (!envValueMatcher.matches()) {
+            throw new IllegalStateException();
+          }
 
+          final String name = envValueMatcher.group(1);
+          int beginning = -1;
+          int end = -1;
+
+          try {
+            beginning = Integer.parseInt(envValueMatcher.group(2));
+          } catch (final Exception ex) {
+            // Nevermind
+          }
+
+          try {
+            end = Integer.parseInt(envValueMatcher.group(3));
+          } catch (final Exception ex) {
+            // Nevermind
+          }
+
+          final String actualValue;
+          final String envValue = System.getenv(name);
+
+          if (envValue == null) {
+            actualValue = "";
+          } else if (beginning == -1 && end == -1) {
+            actualValue = envValue;
+          } else if (beginning == -1) {
+            actualValue = envValue.substring(0, Math.min(end, envValue.length() - 1));
+          } else if (end == -1) {
+            actualValue = envValue.substring(Math.min(beginning, envValue.length() - 1));
+          } else {
+            actualValue = envValue.substring(beginning, end);
+          }
+
+          return new AbstractToken(tokenType) {
             @Override
             public String format(final Object... args) {
-              return value;
+              return actualValue;
             }
           };
         }

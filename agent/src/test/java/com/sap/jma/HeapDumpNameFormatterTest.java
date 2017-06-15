@@ -11,18 +11,24 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 import com.sap.jma.testapi.TemporaryDefaultTimeZone;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.ExpectedException;
 
 public class HeapDumpNameFormatterTest {
 
   @Rule
   public final TemporaryDefaultTimeZone tempDefaultTimeZone = TemporaryDefaultTimeZone.toBe("UTC");
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Rule
   public final ExpectedException expectedException = ExpectedException.none();
@@ -285,6 +291,72 @@ public class HeapDumpNameFormatterTest {
         new HeapDumpNameFormatter("hda_%env:my_prop%.hprof", "my_host", uuidProvider);
 
     assertThat(subject.format(date), is("hda_.hprof"));
+  }
+
+  @Test
+  public void testNamePatternEnvironmentPropertyTruncatedClosedSpan() {
+    environmentVariables.set("my_prop", "abcdefghi");
+
+    final HeapDumpNameFormatter subject =
+        new HeapDumpNameFormatter("hda_%env:my_prop[2,4]%.hprof", "my_host", uuidProvider);
+
+    assertThat(subject.format(date), is("hda_cd.hprof"));
+  }
+
+  @Test
+  public void testNamePatternEnvironmentPropertyTruncatedFromBeginning() {
+    environmentVariables.set("my_prop", "abcdefghi");
+
+    final HeapDumpNameFormatter subject =
+        new HeapDumpNameFormatter("hda_%env:my_prop[,4]%.hprof", "my_host", uuidProvider);
+
+    assertThat(subject.format(date), is("hda_abcd.hprof"));
+  }
+
+  @Test
+  public void testNamePatternEnvironmentPropertyTruncatedOpenEnd() {
+    environmentVariables.set("my_prop", "abcdefghi");
+
+    final HeapDumpNameFormatter subject =
+        new HeapDumpNameFormatter("hda_%env:my_prop[4,]%.hprof", "my_host", uuidProvider);
+
+    assertThat(subject.format(date), is("hda_efghi.hprof"));
+  }
+
+  @Test
+  public void testNamePatternEnvironmentInvalidTruncation_1() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(is("the token '%env:abc[%' (position 4 to 13) has invalid "
+        + "configuration: it must match the '(?:(\\w+)(?:\\[(\\d+)?,(\\d+)?])?)?' pattern"));
+
+    HeapDumpNameFormatter.validate("hda_%env:abc[%.hprof");
+  }
+
+  @Test
+  public void testNamePatternEnvironmentInvalidTruncation_2() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(is("the token '%env:abc]%' (position 4 to 13) has invalid "
+        + "configuration: it must match the '(?:(\\w+)(?:\\[(\\d+)?,(\\d+)?])?)?' pattern"));
+
+    HeapDumpNameFormatter.validate("hda_%env:abc]%.hprof");
+  }
+
+  @Test
+  public void testNamePatternEnvironmentInvalidTruncation_3() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(is("the token '%env:abc[,%' (position 4 to 14) has invalid "
+        + "configuration: it must match the '(?:(\\w+)(?:\\[(\\d+)?,(\\d+)?])?)?' pattern"));
+
+    HeapDumpNameFormatter.validate("hda_%env:abc[,%.hprof");
+  }
+
+  @Test
+  public void testNamePatternEnvironmentInvalidTruncation_4() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(is("the token '%env:abc[a,b]%' (position 4 to 17) has invalid "
+        + "configuration: it must match the '(?:(\\w+)(?:\\[(\\d+)?,(\\d+)?])?)?' pattern"));
+
+    HeapDumpNameFormatter.validate("hda_%env:abc[a,b]%.hprof");
   }
 
 }
