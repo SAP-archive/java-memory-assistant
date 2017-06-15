@@ -7,6 +7,8 @@
 package com.sap.jma;
 
 import com.sap.jma.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 class CommandExecutor {
 
@@ -52,16 +54,19 @@ class CommandExecutor {
     final int exitCode;
     try {
       final Process process;
-      switch (stage) {
-        case ON_SHUTDOWN:
-          process = startProcess(configuration.getCommandInterpreter(), normalizedCommand);
-          break;
-        default:
-          process = startProcess(configuration.getCommandInterpreter(), normalizedCommand,
-              heapDumpFileName);
+      final List<String> commandTokens = new ArrayList<>();
+
+      if (configuration.getCommandInterpreter() != null) {
+        commandTokens.add(configuration.getCommandInterpreter());
       }
 
-      exitCode = process.waitFor();
+      commandTokens.add(normalizedCommand);
+
+      if (stage != HeapDumpStage.ON_SHUTDOWN) {
+        commandTokens.add(heapDumpFileName);
+      }
+
+      exitCode = startProcess(commandTokens.toArray(new String[]{})).waitFor();
     } catch (Exception ex) {
       final String message;
       switch (stage) {

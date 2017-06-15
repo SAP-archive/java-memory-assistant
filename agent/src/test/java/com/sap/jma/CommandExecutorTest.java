@@ -50,6 +50,21 @@ public class CommandExecutorTest {
   }
 
   @Test
+  public void testExecuteBeforeNoCommandInterpreter() throws Exception {
+    doReturn(null).when(configuration).getCommandInterpreter();
+
+    doReturn(process).when(subject).startProcess(anyString(), anyString());
+
+    doReturn("echo").when(configuration).getExecuteBefore();
+
+    subject.executeBeforeHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
+
+    verify(logger).debug("Execution of 'echo' before heap dump "
+        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(process).waitFor();
+  }
+
+  @Test
   public void testExecuteBeforeNoCommand() throws Exception {
     subject.executeBeforeHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
@@ -140,6 +155,21 @@ public class CommandExecutorTest {
   }
 
   @Test
+  public void testExecuteAfterNoCommandInterpreter() throws Exception {
+    doReturn(null).when(configuration).getCommandInterpreter();
+
+    doReturn(process).when(subject).startProcess(anyString(), anyString());
+
+    doReturn("echo").when(configuration).getExecuteAfter();
+
+    subject.executeAfterHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
+
+    verify(logger).debug("Execution of 'echo' after heap dump "
+        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(process).waitFor();
+  }
+
+  @Test
   public void testExecuteAfterNoCommand() throws Exception {
     subject.executeAfterHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
@@ -226,6 +256,20 @@ public class CommandExecutorTest {
     verify(process).waitFor();
     verify(logger).debug("Execution of 'echo' after heap dump "
         + "'heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+  }
+
+  @Test
+  public void testExecuteOnShutdownNoCommandInterpreter() throws Exception {
+    doReturn(null).when(configuration).getCommandInterpreter();
+
+    doReturn(process).when(subject).startProcess(anyString());
+
+    doReturn("echo").when(configuration).getExecuteOnShutDown();
+
+    subject.executeOnShutdownCommand();
+
+    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(process).waitFor();
   }
 
   @Test

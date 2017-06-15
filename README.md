@@ -88,7 +88,7 @@ These startup parameters would make the Java Memory Assistant check every 5 seco
 <tr>
 <td>jma.command.interpreter</td>
 <td>Any string</td>
-<td>A OS-specific interpreter (e.g., shell, cmd) that will be executed via the JDK <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html">java.lang.ProcessBuilder</a> API</td>
+<td>A OS-specific interpreter (e.g., shell, cmd) that will be executed via the JDK <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html">java.lang.ProcessBuilder</a> API. If set to <code>""</code>, the command interpreter is ignored.</td>
 <td><code>cmd</code> on Windows, <code>sh</code> otherwise</td>
 </tr>
 <tr>
