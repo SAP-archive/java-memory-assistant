@@ -54,8 +54,8 @@ public class E2eITest {
   private File dumpsDir;
   private String version;
 
-  private static ProcessCondition hookFileCreatedIn(final File heapDumpFolder,
-                                                    final long timeout, final TimeUnit timeUnit) {
+  private static ProcessCondition hookFileCreatedIn(final File heapDumpFolder, final long timeout,
+                                                    final TimeUnit timeUnit) {
     return fileCreatedIn("^hook_invoked$", heapDumpFolder, timeout, timeUnit);
   }
 
@@ -114,14 +114,10 @@ public class E2eITest {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "1s") //
-        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(),
-            "1/3s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "1%") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "1s") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "1%") //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
         .withSystemProperty("jma-test.allocation", "3MB") //
         .withSystemProperty("jma-test.log", "false") //
@@ -136,12 +132,9 @@ public class E2eITest {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "1s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "5%") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "1s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "5%") //
         .withSystemProperty(Property.EXECUTE_BEFORE_HEAP_DUMP.getQualifiedName(),
             getHookScriptName()) //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
@@ -158,14 +151,10 @@ public class E2eITest {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "10ms") //
-        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(),
-            "1/3s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "1%") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "1%") //
         .withSystemProperty(Property.EXECUTE_AFTER_HEAP_DUMP.getQualifiedName(),
             getHookScriptName()) //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
@@ -182,14 +171,10 @@ public class E2eITest {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "10ms") //
-        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(),
-            "1/3s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "+0.05%/1s") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "+0.05%/1s") //
         .withSystemProperty("jma-test.mode", "step_wise_increment") //
         .withSystemProperty("jma-test.allocation", "500KB") //
         .withSystemProperty("jma-test.log", "false") //
@@ -206,14 +191,10 @@ public class E2eITest {
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(Property.HEAP_DUMP_NAME.getQualifiedName(),
             "%env:test-var%_%ts%.hprof") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "10ms") //
-        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(),
-            "1/3s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "+0.05%/1s") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "+0.05%/1s") //
         .withSystemProperty("jma-test.mode", "step_wise_increment") //
         .withSystemProperty("jma-test.allocation", "500KB") //
         .withSystemProperty("jma-test.log", "false") //
@@ -228,16 +209,11 @@ public class E2eITest {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
-        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(),
-            "ERROR") //
-        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(),
-            "10ms") //
-        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(),
-            "1/3s") //
-        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(),
-            "+0.05%/1s") //
-        .withSystemProperty(Property.EXECUTE_ON_SHUTDOWN.getQualifiedName(),
-            getHookScriptName()) //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), "+0.05%/1s") //
+        .withSystemProperty(Property.EXECUTE_ON_SHUTDOWN.getQualifiedName(), getHookScriptName()) //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
         .withSystemProperty("jma-test.allocation", "3MB") //
         .withSystemProperty("jma-test.log", "false") //
