@@ -8,12 +8,14 @@ package com.sap.jma;
 
 import static com.sap.jma.testapi.process.ProcessCondition.Factory.fileCreatedIn;
 import static com.sap.jma.testapi.process.ProcessCondition.Factory.heapDumpCreatedIn;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
+import com.google.common.collect.Lists;
 import com.sap.jma.Configuration.Property;
 import com.sap.jma.testapi.process.Process;
 import com.sap.jma.testapi.process.ProcessBuilder;
@@ -25,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.tools.ant.util.JavaEnvUtils;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -123,7 +126,7 @@ public class E2eITest {
         .withSystemProperty("jma-test.log", "false") //
         .buildAndRunUntil(heapDumpCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
     assertThat(heapDumpFolder.listFiles(), is(not(Matchers.<File>emptyArray())));
   }
 
@@ -143,7 +146,7 @@ public class E2eITest {
         .withEnvironmentProperty("TARGET_FILE_FOLDER", heapDumpFolder.getAbsolutePath()) //
         .buildAndRunUntil(hookFileCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
   }
 
   @Test
@@ -163,7 +166,7 @@ public class E2eITest {
         .withEnvironmentProperty("TARGET_FILE_FOLDER", heapDumpFolder.getAbsolutePath()) //
         .buildAndRunUntil(hookFileCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
   }
 
   @Test
@@ -180,17 +183,17 @@ public class E2eITest {
         .withSystemProperty("jma-test.log", "false") //
         .buildAndRunUntil(heapDumpCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
   }
 
   @Test
   public void testAgentNamePattern() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
-        .withEnvironmentProperty("test-var", "myHeapDump") //
+        .withEnvironmentProperty("test_var", "myHeapDump") //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(Property.HEAP_DUMP_NAME.getQualifiedName(),
-            "%env:test-var%_%ts%.hprof") //
+            "%env:test_var%_%ts%.hprof") //
         .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
         .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
         .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
@@ -201,7 +204,7 @@ public class E2eITest {
         .buildAndRunUntil(
             fileCreatedIn("myHeapDump_\\d+\\.hprof", heapDumpFolder, 1, TimeUnit.MINUTES));
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
   }
 
   @Test
@@ -223,7 +226,7 @@ public class E2eITest {
     process.shutdown();
     process.waitFor();
 
-    assertThat(process.getErr(), isEmptyString());
+    assertThat(process.getErr(), hasNoErrors());
     assertThat(heapDumpFolder.list(), hasItemInArray("hook_invoked"));
   }
 
@@ -246,6 +249,11 @@ public class E2eITest {
       }
     }.withSystemProperty(Configuration.Property.HEAP_DUMP_FOLDER.getQualifiedName(),
         heapDumpFolder.toString());
+  }
+
+  private static Matcher<String> hasNoErrors() {
+    return not(com.sap.jma.testapi.Matchers.hasUnexpectedErrors(
+        containsString("Class JavaLaunchHelper is implemented in both")));
   }
 
 }

@@ -6,7 +6,11 @@
 
 package com.sap.jma.testapi;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -92,6 +96,78 @@ public final class Matchers {
       };
     }
 
+  }
+
+  @SafeVarargs
+  public static Matcher<String> hasUnexpectedErrors(
+      final Matcher<String> ... expectedErrorMatchers) {
+    return hasUnexpectedErrors(Arrays.asList(expectedErrorMatchers));
+  }
+
+  public static Matcher<String> hasUnexpectedErrors(
+      final List<Matcher<String>> expectedErrorMatchers) {
+    return new TypeSafeMatcher<String>() {
+      @Override
+      protected boolean matchesSafely(final String actual) {
+        return getUnexpectedErrors(actual).size() > 0;
+      }
+
+      @Override
+      public void describeTo(final Description description) {
+        if (expectedErrorMatchers.isEmpty()) {
+          description.appendText("has no lines in its error output");
+          return;
+        }
+
+        description.appendText("has lines in its error output that do not match one of:");
+        for (final Matcher<String> expectedErrorMatcher : expectedErrorMatchers) {
+          expectedErrorMatcher.describeTo(description);
+        }
+      }
+
+      @Override
+      protected void describeMismatchSafely(final String actual,
+                                            final Description mismatchDescription) {
+        mismatchDescription.appendText("has unexpected errors:");
+
+        for (final String unexpectedError : getUnexpectedErrors(actual)) {
+          mismatchDescription.appendText("\n* " + unexpectedError);
+        }
+      }
+
+      private List<String> getUnexpectedErrors(final String actual) {
+        final String[] errorLines = actual.split("[\\n\\r]+");
+
+        if (errorLines.length < 1) {
+          return Collections.emptyList();
+        }
+
+        final List<String> unexpectedErrors = Lists.newArrayList(errorLines);
+
+        Iterables.removeIf(unexpectedErrors, new Predicate<String>() {
+              @Override
+              public boolean apply(final String input) {
+                return input == null || input.trim().isEmpty();
+              }
+            });
+
+        Iterables.removeIf(unexpectedErrors, new Predicate<String>() {
+          @Override
+          public boolean apply(final String actual) {
+            for (final Matcher<String> expectedErrorMatcher : expectedErrorMatchers) {
+              if (expectedErrorMatcher.matches(actual)) {
+                return true;
+              }
+            }
+
+            return false;
+          }
+        });
+
+        return unexpectedErrors;
+      }
+
+    };
   }
 
 }
