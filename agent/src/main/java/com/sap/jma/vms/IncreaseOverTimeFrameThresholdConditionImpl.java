@@ -47,6 +47,14 @@ public abstract class IncreaseOverTimeFrameThresholdConditionImpl
     return Clock.SYSTEM;
   }
 
+  protected abstract long getMemoryUsed();
+
+  protected abstract long getMemoryMax();
+
+  private double getCurrentUsageRatio() {
+    return getMemoryUsed() * 100d / getMemoryMax();
+  }
+
   @Override
   public void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
     final long now = getClock().getMillis();

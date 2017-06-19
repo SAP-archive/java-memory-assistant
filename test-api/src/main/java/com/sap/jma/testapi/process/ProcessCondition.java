@@ -23,6 +23,35 @@ public interface ProcessCondition {
     private Factory() {
     }
 
+    public static ProcessCondition timeElapses(final long timeout,
+                                               final TimeUnit timeUnit) {
+      return new ProcessCondition() {
+
+        private final String description =
+            String.format("%d %s elapse", timeout, timeUnit);
+
+        @Override
+        public void run(final Process process) {
+          final long start = System.currentTimeMillis();
+          final long end = start + timeUnit.toMillis(timeout);
+
+          while (System.currentTimeMillis() < end) {
+            try {
+              Thread.sleep(end - System.currentTimeMillis());
+            } catch (final InterruptedException ex) {
+              // Nevermind
+            }
+          }
+        }
+
+        @Override
+        public String toString() {
+          return description;
+        }
+
+      };
+    }
+
     public static ProcessCondition fileCreatedIn(final String fileNameRegex,
                                                  final File targetFolder,
                                                  final long timeout,

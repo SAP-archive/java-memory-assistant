@@ -226,7 +226,8 @@ class HeapDumpNameFormatter {
       }
 
       final String tokenConfiguration = matcher.group(2);
-      final boolean hasConfiguration = tokenConfiguration != null && !tokenConfiguration.isEmpty();
+      final boolean hasConfiguration =
+          (tokenConfiguration != null) && !tokenConfiguration.isEmpty();
 
       final TokenType tokenType = from(tokenName);
 

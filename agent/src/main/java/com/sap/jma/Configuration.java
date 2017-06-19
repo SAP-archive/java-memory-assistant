@@ -429,21 +429,28 @@ public class Configuration {
     private static ThresholdConfiguration parseThreshold(final MemoryPoolType memoryPool,
                                                          final String value)
         throws InvalidPropertyValueException {
-      if (value.trim().length() < 1) {
+      final String trimmedValue = value.trim();
+      if (trimmedValue.length() < 1) {
         // Disabled
         return null;
       }
 
+      String type = null;
       try {
-        return PercentageThresholdConfiguration.parse(memoryPool, value);
-      } catch (final InvalidPropertyValueException ex) {
-        if (ex.getCause() instanceof NumberFormatException) {
-          // Could be parsed, but some numeric value is bogus
-          throw ex;
+        final char initialCharacter = trimmedValue.charAt(0);
+        if (initialCharacter >= '0' && initialCharacter <= '9') {
+          type = "percentage";
+          return PercentageThresholdConfiguration.parse(memoryPool, value);
+        } else if (initialCharacter == '<' || initialCharacter == '=' || initialCharacter == '>') {
+          type = "absolute";
+          return AbsoluteThresholdConfiguration.parse(memoryPool, value);
+        } else {
+          type = "increase-over-timeframe";
+          return IncreaseOverTimeFrameThresholdConfiguration.parse(memoryPool, value);
         }
-
-        // Not a valid absolute value, try to parse as increase-over-time-frame
-        return IncreaseOverTimeFrameThresholdConfiguration.parse(memoryPool, value);
+      } catch (final InvalidPropertyValueException ex) {
+        throw new InvalidPropertyValueException("cannot parse the value '" + value + "' as "
+            + type + " threshold: " + ex.getMessage());
       }
     }
 
@@ -468,7 +475,8 @@ public class Configuration {
        * This will always use the "official" prefix, even though the property has been set via the
        * deprecated namespace
        */
-      config.overrides.add(String.format("Configuration option '%s' specified with value: '%s'",
+      config.overrides.add(
+          String.format("Configuration option '%s' specified with value: '%s'",
           OFFICIAL_JAVA_MEMORY_ASSISTANT_CONFIGURATIONS_PREFIX + this.literal, value));
     }
 
@@ -608,8 +616,8 @@ public class Configuration {
           builder.with(property, value);
         } catch (InvalidPropertyValueException ex) {
           errors.add(new IllegalArgumentException(
-              String.format("The value '%s' is invalid for the '%s' property: %s", value, property,
-                  ex.getMessage())));
+              String.format("The value '%s' is invalid for the '%s' property: %s", value,
+                  property, ex.getMessage())));
         }
       }
 
@@ -764,11 +772,175 @@ public class Configuration {
     }
   }
 
+  public enum MemorySizeUnit {
+
+    GIGABYTE("GB", 1024 * 1024 * 1024d),
+
+    MEGABYTE("MB", 1024 * 1024d),
+
+    KILOBYTE("KB", 1024d),
+
+    BYTE("B", 1d);
+
+    private final String literal;
+    private final double multiplierToBytes;
+
+    MemorySizeUnit(final String literal, final double multiplierToBytes) {
+      this.literal = literal;
+      this.multiplierToBytes = multiplierToBytes;
+    }
+
+    public static MemorySizeUnit from(final String actual) {
+      for (final MemorySizeUnit unit : values()) {
+        if (unit.literal.equals(actual.trim())) {
+          return unit;
+        }
+      }
+
+      throw new IllegalArgumentException(
+          String.format("Memory size unit '%s' is not recognized; valid values are: %s", actual,
+              Configuration.toString(values())));
+    }
+
+    public double toBytes(double valueInUnitSize) {
+      return valueInUnitSize * multiplierToBytes;
+    }
+
+    public String getLiteral() {
+      return literal;
+    }
+
+  }
+
+  public enum Comparison {
+    SMALLER_THAN("<") {
+      @Override
+      public boolean compare(double expected, double actual) {
+        return expected < actual;
+      }
+    },
+    SMALLER_THAN_OR_EQUAL_TO("<=") {
+      @Override
+      public boolean compare(double expected, double actual) {
+        return expected <= actual;
+      }
+    },
+    EQUAL_TO("==") {
+      @Override
+      public boolean compare(double expected, double actual) {
+        return expected == actual;
+      }
+    },
+    LARGER_THAN(">") {
+      @Override
+      public boolean compare(double expected, double actual) {
+        return expected > actual;
+      }
+    },
+    LARGER_THAN_OR_EQUAL_TO(">=") {
+      @Override
+      public boolean compare(double expected, double actual) {
+        return expected >= actual;
+      }
+    };
+
+    private final String literal;
+
+    Comparison(final String literal) {
+      this.literal = literal;
+    }
+
+    public abstract boolean compare(final double expected, final double actual);
+
+    public static Comparison from(final String actual) {
+      for (final Comparison comparison : values()) {
+        if (comparison.literal.equals(actual.trim())) {
+          return comparison;
+        }
+      }
+
+      throw new IllegalArgumentException(
+          String.format("Comparison operator '%s' is not recognized; valid values are: %s",
+              actual, Configuration.toString(values())));
+    }
+
+  }
+
+  public static class AbsoluteThresholdConfiguration implements ThresholdConfiguration {
+
+    private static final Pattern ABSOLUTE_PATTERN =
+        Pattern.compile("([<=>]+)(\\d*\\.?\\d*\\d)([KMG]?B)");
+
+    static AbsoluteThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
+                                                final String value)
+        throws InvalidPropertyValueException {
+      final Matcher matcher = ABSOLUTE_PATTERN.matcher(value);
+
+      if (!matcher.matches()) {
+        throw new InvalidPropertyValueException(
+            String.format("it must follow the Java pattern '%s'", ABSOLUTE_PATTERN.pattern()));
+      }
+
+      try {
+        final Comparison comparison = Comparison.from(matcher.group(1));
+        final double valueInUnitSize = Double.parseDouble(matcher.group(2));
+        final MemorySizeUnit memorySizeUnit = MemorySizeUnit.from(matcher.group(3));
+
+        final double valueInBytes = memorySizeUnit.toBytes(valueInUnitSize);
+
+        return new AbsoluteThresholdConfiguration(memoryPoolType, comparison, valueInBytes,
+            memorySizeUnit, value);
+      } catch (final Exception ex) {
+        throw new InvalidPropertyValueException("cannot be parsed", ex);
+      }
+    }
+
+    private final MemoryPoolType memoryPool;
+    private final Comparison comparison;
+    private final double targetValueInBytes;
+    private final MemorySizeUnit memorySizeUnit;
+    private final String configurationValue;
+
+    AbsoluteThresholdConfiguration(final MemoryPoolType memoryPool,
+                                   final Comparison comparison,
+                                   final double targetValueInBytes,
+                                   final MemorySizeUnit memorySizeUnit,
+                                   final String configurationValue) {
+      this.memoryPool = memoryPool;
+      this.comparison = comparison;
+      this.targetValueInBytes = targetValueInBytes;
+      this.memorySizeUnit = memorySizeUnit;
+      this.configurationValue = configurationValue;
+    }
+
+    public Comparison getComparison() {
+      return comparison;
+    }
+
+    public double getTargetValueInBytes() {
+      return targetValueInBytes;
+    }
+
+    public MemorySizeUnit getMemorySizeUnit() {
+      return memorySizeUnit;
+    }
+
+    @Override
+    public MemoryPoolType getMemoryPool() {
+      return memoryPool;
+    }
+
+    @Override
+    public String toString() {
+      return memoryPool + " " + configurationValue;
+    }
+  }
+
   public static class PercentageThresholdConfiguration implements ThresholdConfiguration {
 
     private static final Pattern PERCENTAGE_PATTERN = Pattern.compile("(\\d*\\.?\\d*\\d)%");
     private final double value;
-    private MemoryPoolType memoryPool;
+    private final MemoryPoolType memoryPool;
 
     PercentageThresholdConfiguration(final MemoryPoolType memoryPool, final double value) {
       this.memoryPool = memoryPool;
@@ -911,8 +1083,9 @@ public class Configuration {
         values.setLength(values.length() - 2);
 
         throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the time unit of the time-frame of "
-                + "memory usage increase threshold: valid values are " + values, timeFrameValue));
+            String.format("The value '%s' is not valid for the time unit of "
+                + "the time-frame of memory usage increase threshold: valid values are "
+                + values, timeFrameValue));
       }
 
       return new IncreaseOverTimeFrameThresholdConfiguration(memoryPool, delta, timeFrameInt,
@@ -980,8 +1153,8 @@ public class Configuration {
         }
       } catch (final NumberFormatException ex) {
         throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the max amount of heap dumps in a "
-                + "time-frame: must be a positive Java integer (0 < n <= 2147483647)",
+            String.format("The value '%s' is not valid for the max amount of heap dumps "
+                + "in a time-frame: must be a positive Java integer (0 < n <= 2147483647)",
                 matcher.group(1)));
       }
 
@@ -1017,8 +1190,8 @@ public class Configuration {
         values.setLength(values.length() - 2);
 
         throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the time unit of the time-frame of "
-                + "heap dumps: valid values are " + values, timeFrameValue));
+            String.format("The value '%s' is not valid for the time unit of the time-frame "
+                + "of heap dumps: valid values are " + values, timeFrameValue));
       }
 
       return new HeapDumpExecutionFrequency(maxCount,
@@ -1060,7 +1233,7 @@ public class Configuration {
 
   }
 
-  private static class InvalidPropertyValueException extends Exception {
+  static class InvalidPropertyValueException extends Exception {
 
     private InvalidPropertyValueException(String message) {
       super(message);
@@ -1070,6 +1243,22 @@ public class Configuration {
       super(message, cause);
     }
 
+  }
+
+  private static String toString(final Enum<? extends Enum>[] array) {
+    if (array == null || array.length < 1) {
+      return "";
+    }
+
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 0, l = array.length; i < l; ++i) {
+      sb.append(array[i].toString());
+      if (i < l - 1) {
+        sb.append(", ");
+      }
+    }
+
+    return sb.toString();
   }
 
 }

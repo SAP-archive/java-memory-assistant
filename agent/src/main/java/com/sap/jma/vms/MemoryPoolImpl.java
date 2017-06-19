@@ -37,10 +37,27 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
 
     if (thresholdConfiguration == null) {
       return null;
-    }
+    } else if (thresholdConfiguration instanceof Configuration.AbsoluteThresholdConfiguration) {
+      return new AbsoluteThresholdConditionImpl() {
 
-    if (thresholdConfiguration instanceof Configuration.PercentageThresholdConfiguration) {
-      return new AbsoluteUsageThresholdConditionImpl() {
+        @Override
+        protected String getMemoryPoolName() {
+          return memoryPoolBean.getName();
+        }
+
+        @Override
+        protected double getCurrentUsageInBytes() {
+          return memoryPoolBean.getUsage().getUsed();
+        }
+
+        @Override
+        public Configuration.AbsoluteThresholdConfiguration getUsageThreshold() {
+          return (Configuration.AbsoluteThresholdConfiguration) thresholdConfiguration;
+        }
+
+      };
+    } else if (thresholdConfiguration instanceof Configuration.PercentageThresholdConfiguration) {
+      return new PercentageThresholdConditionImpl() {
 
         @Override
         protected String getMemoryPoolName() {

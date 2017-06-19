@@ -8,14 +8,13 @@ package com.sap.jma;
 
 import static com.sap.jma.testapi.process.ProcessCondition.Factory.fileCreatedIn;
 import static com.sap.jma.testapi.process.ProcessCondition.Factory.heapDumpCreatedIn;
+import static com.sap.jma.testapi.process.ProcessCondition.Factory.timeElapses;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-import com.google.common.collect.Lists;
 import com.sap.jma.Configuration.Property;
 import com.sap.jma.testapi.process.Process;
 import com.sap.jma.testapi.process.ProcessBuilder;
@@ -182,6 +181,65 @@ public class E2eITest {
         .withSystemProperty("jma-test.allocation", "500KB") //
         .withSystemProperty("jma-test.log", "false") //
         .buildAndRunUntil(heapDumpCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
+
+    assertThat(process.getErr(), hasNoErrors());
+  }
+
+  @Test
+  public void testAgentAbsoluteThresholdStepWiseAllocation() throws Exception {
+    final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArgument("-Xms20m") //
+        .withJvmArgument("-Xmx20m") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), ">2MB") //
+        .withSystemProperty("jma-test.mode", "step_wise_increment") //
+        .withSystemProperty("jma-test.allocation", "500KB") //
+        .withSystemProperty("jma-test.log", "false") //
+        .buildAndRunUntil(heapDumpCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
+
+    assertThat(process.getErr(), hasNoErrors());
+  }
+
+  @Test
+  public void testAgentAbsoluteThresholdFixedAllocationOverThreshold() throws Exception {
+    final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArgument("-Xms20m") //
+        .withJvmArgument("-Xmx20m") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), ">5MB") //
+        .withSystemProperty("jma-test.mode", "direct_allocation") //
+        .withSystemProperty("jma-test.allocation", "5MB") //
+        .withSystemProperty("jma-test.log", "false") //
+        .buildAndRunUntil(timeElapses(20, TimeUnit.SECONDS));
+
+    assertThat(heapDumpFolder.listFiles(), not(Matchers.<File>emptyArray()));
+
+    assertThat(process.getErr(), hasNoErrors());
+  }
+
+  @Test
+  public void testAgentAbsoluteThresholdFixedAllocationUnderThreshold() throws Exception {
+    final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArgument("-Xms20m") //
+        .withJvmArgument("-Xmx20m") //
+        .withSystemProperty(Property.LOG_LEVEL.getQualifiedName(), "ERROR") //
+        .withSystemProperty(Property.CHECK_INTERVAL.getQualifiedName(), "10ms") //
+        .withSystemProperty(Property.MAX_HEAP_DUMP_FREQUENCY.getQualifiedName(), "1/3s") //
+        /*
+         * This one is tricky: at startup, the JVM allocates more memory which then goes away
+         * with the first garbage collection, so we give an outrageously high threshold
+         */
+        .withSystemProperty(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName(), ">50MB") //
+        .withSystemProperty("jma-test.mode", "direct_allocation") //
+        .withSystemProperty("jma-test.allocation", "500KB") //
+        .withSystemProperty("jma-test.log", "false") //
+        .buildAndRunUntil(timeElapses(20, TimeUnit.SECONDS));
+
+    assertThat(heapDumpFolder.listFiles(), Matchers.<File>emptyArray());
 
     assertThat(process.getErr(), hasNoErrors());
   }
