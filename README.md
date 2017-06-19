@@ -147,9 +147,12 @@ The Java Memory Assistant supports the following tokens:
 <td>The number of millis since the Unix epoch, calculated as <code>java.lang.System.currentTimeMillis()</code>, or its value formatted with the pattern provided as configuration; the formatter uses the <code>java.util.TimeZone.getDefault()</code> time zone.</td>
 </tr>
 <tr>
-<td>%env:[property name]%</td>
+<td>%env:<property name>['['i, j']']%</td>
 <td>required: the name of an environment property</td>
-<td>The name of an environment property, the value of which replaces the token. The value is looked up via the <code>java.lang.System.getenv([property name])</code> call. If the environment property is not present, the token will generate no characters.</td>
+<td>The name of an environment property, the value of which replaces the token.
+The value is looked up via the <code>java.lang.System.getenv([property name])</code> call.
+If the environment property is not present, the token will generate no characters.
+The value of the environment property can be truncated using the `[a, b]` notation appended to the environment variable name to select a substring of the value.</td>
 </tr>
 </tbody>
 </table>
