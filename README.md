@@ -75,7 +75,13 @@ These startup parameters would make the Java Memory Assistant check every 5 seco
 </tr>
 <tr>
 <td>jma.thresholds.heap</td>
-<td>Either a usage percentage threshold, i.e., any number between 0 and 99.99 followed by the '%' sign (precise to the second decimal digit, e.g., 42.42), or a percentage-based increase-over-time-frame specification, e.g., <code>+5%/4s</code> (5% increase over 4 seconds); time unit is one of <code>ms</code> (milliseconds), <code>s</code> (seconds), <code>m</code> (minutes) or <code>h</code> (hours).</td>
+<td>The thresholds can be specified as one of the following:
+<ul>
+<li>absolute percentage threshold, e.g., more than 200 MB (`&gt;200MB`) or less than 40KB (`&lt;40k`); the first token is a comparison operator out of `&lt;` (strictly lesser than), `&lt;=` (strictly lesser than or equal to), `==` (equal to, exact to the byte), `=&gt;` (equal to or greater than) and `&gt;` (strictly greater than); supported memory units are `GB`, `MB` and `KB`</li>
+<li>usage percentage threshold, i.e., any number between 0 and 99.99 followed by the '%' sign (precise to the second decimal digit, e.g., 42.42)</li>
+<li>percentage-based increase-over-time-frame specification, e.g., <code>+5%/4s</code> (5% increase over 4 seconds); time unit is one of <code>ms</code> (milliseconds), <code>s</code> (seconds), <code>m</code> (minutes) or <code>h</code> (hours)</li>
+</ul>
+</td>
 <td>The usage threshold of the overall heap that, when reached or surpassed, triggers a heap dump</td>
 <td><code>null</code> (disabled)</td>
 </tr>

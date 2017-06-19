@@ -19,14 +19,6 @@ abstract class AbstractUsageThresholdConditionImpl<C extends ThresholdConfigurat
 
   protected abstract String getMemoryPoolName();
 
-  protected abstract long getMemoryUsed();
-
-  protected abstract long getMemoryMax();
-
-  final double getCurrentUsageRatio() {
-    return getMemoryUsed() * 100d / getMemoryMax();
-  }
-
   public abstract C getUsageThreshold();
 
 }

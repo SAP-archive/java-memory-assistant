@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.sap.jma.logging.Logger;
-import com.sap.jma.vms.AbsoluteUsageThresholdConditionImpl;
 import com.sap.jma.vms.JavaVirtualMachine;
+import com.sap.jma.vms.PercentageThresholdConditionImpl;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
@@ -51,6 +51,17 @@ import org.junit.runner.RunWith;
 
 @RunWith(Enclosed.class)
 public class MBeanMonitorTest {
+
+  private static Configuration.AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+      final String value) throws Configuration.InvalidPropertyValueException {
+    return absoluteThresholdConfiguration(JavaVirtualMachine.MemoryPoolType.HEAP, value);
+  }
+
+  private static Configuration.AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+      final JavaVirtualMachine.MemoryPoolType memoryPool, final String value)
+      throws Configuration.InvalidPropertyValueException {
+    return Configuration.AbsoluteThresholdConfiguration.parse(memoryPool, value);
+  }
 
   private static Configuration.PercentageThresholdConfiguration
         percentageThresholdConfiguration(final double usageThreshold) {
@@ -702,8 +713,8 @@ public class MBeanMonitorTest {
     }
 
     @Test
-    public void testHeapTriggersDump() throws Exception {
-      doReturn(percentageThresholdConfiguration(20d)).when(configuration)
+    public void testHeapAbsoluteConditionTriggersDumpLargerThan() throws Exception {
+      doReturn(absoluteThresholdConfiguration(">20B")).when(configuration)
           .getHeapMemoryUsageThreshold();
       doReturn(500L).when(heapMemoryUsage).getMax();
       doReturn(317L).when(heapMemoryUsage).getUsed();
@@ -714,15 +725,63 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Heap' at 63.4% usage, "
-          + "configured threshold is 20%");
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'Heap' at 317B usage, configured threshold is larger than 20B");
+    }
+
+    @Test
+    public void testHeapAbsoluteConditionTriggersDumpExactMatch() throws Exception {
+      doReturn(absoluteThresholdConfiguration("==20B")).when(configuration)
+          .getHeapMemoryUsageThreshold();
+      doReturn(500L).when(heapMemoryUsage).getMax();
+      doReturn(20L).when(heapMemoryUsage).getUsed();
+
+      subject.start();
+      reset(logger);
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator).createHeapDump(any(Date.class));
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'Heap' at 20B usage, configured threshold is equal to 20B");
+    }
+
+    @Test
+    public void testHeapAbsoluteConditionTriggersDumpSmallerThan() throws Exception {
+      doReturn(absoluteThresholdConfiguration("<20B")).when(configuration)
+          .getHeapMemoryUsageThreshold();
+      doReturn(500L).when(heapMemoryUsage).getMax();
+      doReturn(10L).when(heapMemoryUsage).getUsed();
+
+      subject.start();
+      reset(logger);
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator).createHeapDump(any(Date.class));
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'Heap' at 10B usage, configured threshold is smaller than 20B");
+    }
+
+    @Test
+    public void testHeapAbsoluteConditionDoesNotTriggerDump() throws Exception {
+      doReturn(absoluteThresholdConfiguration("<10B")).when(configuration)
+          .getHeapMemoryUsageThreshold();
+      doReturn(100L).when(heapMemoryUsage).getMax();
+      doReturn(50L).when(heapMemoryUsage).getUsed();
+
+      subject.start();
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator, never()).createHeapDump(any(Date.class));
     }
 
     @Test
     public void testHeapDoesNotTriggerDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getHeapMemoryUsageThreshold();
-      doReturn(50L).when(heapMemoryUsage).getMax();
+      doReturn(50L * 1024 * 1024).when(heapMemoryUsage).getMax();
       doReturn(1L).when(heapMemoryUsage).getUsed();
 
       subject.start();
@@ -822,6 +881,54 @@ public class MBeanMonitorTest {
     }
 
     @Test
+    public void testEdenSpaceAbsoluteConditionTriggersDumpLargerThan() throws Exception {
+      doReturn(absoluteThresholdConfiguration(">20B")).when(configuration)
+          .getEdenSpaceMemoryUsageThreshold();
+      addMemoryPoolBean("PS Eden Space", 500L, 317L);
+
+      subject.start();
+      reset(logger);
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator).createHeapDump(any(Date.class));
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'PS Eden Space' at 317B usage, configured threshold is larger than 20B");
+    }
+
+    @Test
+    public void testEdenSpaceAbsoluteConditionTriggersDumpExactMatch() throws Exception {
+      doReturn(absoluteThresholdConfiguration("==20B")).when(configuration)
+          .getEdenSpaceMemoryUsageThreshold();
+      addMemoryPoolBean("PS Eden Space", 500L, 20L);
+
+      subject.start();
+      reset(logger);
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator).createHeapDump(any(Date.class));
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'PS Eden Space' at 20B usage, configured threshold is equal to 20B");
+    }
+
+    @Test
+    public void testEdenSpaceAbsoluteConditionTriggersDumpSmallerThan() throws Exception {
+      doReturn(absoluteThresholdConfiguration("<20B")).when(configuration)
+          .getEdenSpaceMemoryUsageThreshold();
+      addMemoryPoolBean("PS Eden Space", 500L, 10L);
+
+      subject.start();
+      reset(logger);
+
+      scheduler.runNextPendingCommand();
+
+      verify(heapDumpCreator).createHeapDump(any(Date.class));
+      verify(logger).info("Heap dump triggered because:\n"
+          + "* Memory pool 'PS Eden Space' at 10B usage, configured threshold is smaller than 20B");
+    }
+
+    @Test
     public void testSurvivorSpaceTriggersDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getSurvivorSpaceMemoryUsageThreshold();
@@ -905,7 +1012,7 @@ public class MBeanMonitorTest {
      */
     @Test
     public void testInfiniteNumbersOfDecimals() throws Exception {
-      new AbsoluteUsageThresholdConditionImpl() {
+      new PercentageThresholdConditionImpl() {
         protected String getMemoryPoolName() {
           return "Test";
         }

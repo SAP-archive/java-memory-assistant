@@ -223,7 +223,8 @@ public class ConfigurationTest {
     expectedException.expectMessage(hasLines("There are invalid configuration values:", //
         "* The value 'NOPE 1' is invalid for the 'jma.log_level' property: "
         + "allowed values are: OFF, ERROR, INFO, WARNING, DEBUG", //
-        "* The value 'NOPE 2' is invalid for the 'jma.thresholds.heap' property: "
+        "* The value 'NOPE 2' is invalid for the 'jma.thresholds.heap' property: " //
+        + "cannot parse the value 'NOPE 2' as increase-over-timeframe threshold: " //
         + "it must follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'"
     ));
 
@@ -285,6 +286,29 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testValidAbsoluteUsageThreshold() {
+    temporarySystemProperties
+        .set(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName())
+        .to(">42MB");
+
+    Configuration.Builder.initializeFromSystemProperties(logger).build();
+  }
+
+  @Test
+  public void testInvalidAbsoluteUsageThreshold() {
+    temporarySystemProperties
+        .set(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName())
+        .to("<=>42CI");
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("The value '<=>42CI' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '<=>42CI' as absolute threshold: it must follow the "
+        + "Java pattern '([<=>]+)(\\d*\\.?\\d*\\d)([KMG]?B)");
+
+    Configuration.Builder.initializeFromSystemProperties(logger).build();
+  }
+
+  @Test
   public void testInvalidPercentageUsageThreshold() {
     temporarySystemProperties
         .set(Property.HEAP_MEMORY_USAGE_THRESHOLD.getQualifiedName())
@@ -336,9 +360,9 @@ public class ConfigurationTest {
         .to("%/1s");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '%/1s' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '%/1s' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '%/1s' as increase-over-timeframe threshold: it must "
+        + "follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }
@@ -350,9 +374,9 @@ public class ConfigurationTest {
         .to("+%/1s");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '+%/1s' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '+%/1s' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '+%/1s' as increase-over-timeframe threshold: it must "
+        + "follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }
@@ -364,9 +388,9 @@ public class ConfigurationTest {
         .to("+4/1s");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '+4/1s' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '+4/1s' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '+4/1s' as increase-over-timeframe threshold: it must "
+        + "follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }
@@ -378,9 +402,9 @@ public class ConfigurationTest {
         .to(".%/1s");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '.%/1s' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '.%/1s' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '.%/1s' as increase-over-timeframe threshold: it must "
+        + "follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }
@@ -392,9 +416,9 @@ public class ConfigurationTest {
         .to("+4%/1");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '+4%/1' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '+4%/1' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '+4%/1' as increase-over-timeframe threshold: it must "
+        + "follow the Java pattern '\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }
@@ -406,9 +430,9 @@ public class ConfigurationTest {
         .to("4%/1ms");
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("The value '4%/1ms' is invalid for the "
-        + "'jma.thresholds.heap' property: it must follow the Java pattern "
-        + "'\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)'");
+    expectedException.expectMessage("The value '4%/1ms' is invalid for the 'jma.thresholds.heap' "
+        + "property: cannot parse the value '4%/1ms' as percentage threshold: "
+        + "it must follow the Java pattern '(\\d*\\.?\\d*\\d)%'");
 
     Configuration.Builder.initializeFromSystemProperties(logger).build();
   }

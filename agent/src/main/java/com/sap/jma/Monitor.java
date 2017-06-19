@@ -28,7 +28,7 @@ abstract class Monitor {
 
     this.heapDumpCreator = heapDumpCreator;
     this.configuration = configuration;
-    this.executionHistory = new LinkedList<Date>();
+    this.executionHistory = new LinkedList<>();
   }
 
   protected Configuration getConfiguration() {
