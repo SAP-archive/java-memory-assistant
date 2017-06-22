@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-import com.sap.jma.Configuration;
+import com.sap.jma.configuration.Configuration;
 import com.sap.jma.testapi.TemporarySystemProperties;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;

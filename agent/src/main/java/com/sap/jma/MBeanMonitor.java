@@ -8,6 +8,11 @@ package com.sap.jma;
 
 import static com.sap.jma.concurrent.ThreadFactories.deamons;
 
+import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.Configuration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.PercentageThresholdConfiguration;
+import com.sap.jma.configuration.ThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.AbsoluteThresholdConditionImpl;
 import com.sap.jma.vms.IncreaseOverTimeFrameThresholdConditionImpl;
@@ -56,11 +61,11 @@ class MBeanMonitor extends Monitor {
 
     final JavaVirtualMachine jvm = findCurrentJvm();
 
-    final Configuration.ThresholdConfiguration config = configuration.getHeapMemoryUsageThreshold();
+    final ThresholdConfiguration config = configuration.getHeapMemoryUsageThreshold();
     final JavaVirtualMachine.UsageThresholdCondition condition;
     if (config == null) {
       condition = null;
-    } else if (config instanceof Configuration.AbsoluteThresholdConfiguration) {
+    } else if (config instanceof AbsoluteThresholdConfiguration) {
       final MemoryMXBean memoryBean = getMemoryMxBean();
       condition = new AbsoluteThresholdConditionImpl() {
         @Override
@@ -74,11 +79,11 @@ class MBeanMonitor extends Monitor {
         }
 
         @Override
-        public Configuration.AbsoluteThresholdConfiguration getUsageThreshold() {
-          return (Configuration.AbsoluteThresholdConfiguration) config;
+        public AbsoluteThresholdConfiguration getUsageThreshold() {
+          return (AbsoluteThresholdConfiguration) config;
         }
       };
-    } else if (config instanceof Configuration.IncreaseOverTimeFrameThresholdConfiguration) {
+    } else if (config instanceof IncreaseOverTimeFrameThresholdConfiguration) {
       final MemoryMXBean memoryBean = getMemoryMxBean();
       condition = new IncreaseOverTimeFrameThresholdConditionImpl() {
         @Override
@@ -97,11 +102,11 @@ class MBeanMonitor extends Monitor {
         }
 
         @Override
-        public Configuration.IncreaseOverTimeFrameThresholdConfiguration getUsageThreshold() {
-          return (Configuration.IncreaseOverTimeFrameThresholdConfiguration) config;
+        public IncreaseOverTimeFrameThresholdConfiguration getUsageThreshold() {
+          return (IncreaseOverTimeFrameThresholdConfiguration) config;
         }
       };
-    } else if (config instanceof Configuration.PercentageThresholdConfiguration) {
+    } else if (config instanceof PercentageThresholdConfiguration) {
       final MemoryMXBean memoryBean = getMemoryMxBean();
       condition = new PercentageThresholdConditionImpl() {
         @Override
@@ -120,8 +125,8 @@ class MBeanMonitor extends Monitor {
         }
 
         @Override
-        public Configuration.PercentageThresholdConfiguration getUsageThreshold() {
-          return (Configuration.PercentageThresholdConfiguration) config;
+        public PercentageThresholdConfiguration getUsageThreshold() {
+          return (PercentageThresholdConfiguration) config;
         }
 
         @Override

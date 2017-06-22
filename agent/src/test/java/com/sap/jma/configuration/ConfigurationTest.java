@@ -4,7 +4,7 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma;
+package com.sap.jma.configuration;
 
 import static com.sap.jma.testapi.Matchers.StringMatchers.hasLines;
 import static org.hamcrest.Matchers.is;
@@ -16,8 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.sap.jma.Configuration.IncreaseOverTimeFrameThresholdConfiguration;
-import com.sap.jma.Configuration.Property;
+import com.sap.jma.configuration.Configuration.Property;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.testapi.TemporarySystemProperties;
 import java.io.File;
@@ -25,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,9 +40,9 @@ public class ConfigurationTest {
 
   private final Logger logger = mock(Logger.class);
 
-  private static Matcher<Configuration.ThresholdConfiguration>
+  private static Matcher<ThresholdConfiguration>
         hasIncreaseOverTimeFrameValue(final double increase, final long timeFrameInMillis) {
-    return new BaseMatcher<Configuration.ThresholdConfiguration>() {
+    return new BaseMatcher<ThresholdConfiguration>() {
       @Override
       public boolean matches(Object obj) {
         try {
@@ -67,13 +65,13 @@ public class ConfigurationTest {
     };
   }
 
-  private static Matcher<Configuration.ThresholdConfiguration>
+  private static Matcher<ThresholdConfiguration>
         hasPercentageValue(final double expected) {
-    return new BaseMatcher<Configuration.ThresholdConfiguration>() {
+    return new BaseMatcher<ThresholdConfiguration>() {
       @Override
       public boolean matches(Object obj) {
-        return obj instanceof Configuration.PercentageThresholdConfiguration
-            && ((Configuration.PercentageThresholdConfiguration) obj).getValue() == expected;
+        return obj instanceof PercentageThresholdConfiguration
+            && ((PercentageThresholdConfiguration) obj).getValue() == expected;
       }
 
       @Override
@@ -111,7 +109,7 @@ public class ConfigurationTest {
 
     assertThat(subject.getHeapDumpFolder(), is(new File(System.getProperty("user.dir"))));
 
-    assertThat(subject.getLogLevel(), Matchers.is(Logger.Severity.ERROR));
+    assertThat(subject.getLogLevel(), is(Logger.Severity.ERROR));
 
     assertThat(subject.getCheckIntervalInMillis(), is(-1L));
 
@@ -189,7 +187,7 @@ public class ConfigurationTest {
 
     assertThat(configuration.isEnabled(), is(false));
 
-    final Configuration.HeapDumpExecutionFrequency maxFrequency = configuration.getMaxFrequency();
+    final ExecutionFrequency maxFrequency = configuration.getMaxFrequency();
     assertThat(maxFrequency, notNullValue());
     assertThat(maxFrequency.getExecutionAmount(), is(4));
     assertThat(maxFrequency.getTimeFrameInMillis(), is(2 * 60 * 60 * 1000L));
@@ -334,7 +332,7 @@ public class ConfigurationTest {
 
     assertThat(config.getDelta(), is(90d));
     assertThat(config.getTimeFrame(), is(3d));
-    assertThat(config.getTimeUnit(), is(Configuration.IntervalTimeUnit.HOURS));
+    assertThat(config.getTimeUnit(), is(IntervalTimeUnit.HOURS));
   }
 
   @Test
@@ -350,7 +348,7 @@ public class ConfigurationTest {
 
     assertThat(config.getDelta(), is(0.4));
     assertThat(config.getTimeFrame(), is(1d));
-    assertThat(config.getTimeUnit(), is(Configuration.IntervalTimeUnit.SECONDS));
+    assertThat(config.getTimeUnit(), is(IntervalTimeUnit.SECONDS));
   }
 
   @Test
@@ -495,28 +493,28 @@ public class ConfigurationTest {
 
   @Test
   public void testFrequencyParsing() throws Exception {
-    final Configuration.HeapDumpExecutionFrequency s0 =
-        Configuration.HeapDumpExecutionFrequency.parse("12/ms");
+    final ExecutionFrequency s0 =
+        ExecutionFrequency.parse("12/ms");
     assertThat(s0.getExecutionAmount(), is(12));
     assertThat(s0.getTimeFrameInMillis(), is(1L));
 
-    final Configuration.HeapDumpExecutionFrequency s1 =
-        Configuration.HeapDumpExecutionFrequency.parse("12/42ms");
+    final ExecutionFrequency s1 =
+        ExecutionFrequency.parse("12/42ms");
     assertThat(s1.getExecutionAmount(), is(12));
     assertThat(s1.getTimeFrameInMillis(), is(42L));
 
-    final Configuration.HeapDumpExecutionFrequency s2 =
-        Configuration.HeapDumpExecutionFrequency.parse("6/2s");
+    final ExecutionFrequency s2 =
+        ExecutionFrequency.parse("6/2s");
     assertThat(s2.getExecutionAmount(), is(6));
     assertThat(s2.getTimeFrameInMillis(), is(2000L));
 
-    final Configuration.HeapDumpExecutionFrequency s3 =
-        Configuration.HeapDumpExecutionFrequency.parse("9/4m");
+    final ExecutionFrequency s3 =
+        ExecutionFrequency.parse("9/4m");
     assertThat(s3.getExecutionAmount(), is(9));
     assertThat(s3.getTimeFrameInMillis(), is(4 * 60 * 1000L));
 
-    final Configuration.HeapDumpExecutionFrequency s4 =
-        Configuration.HeapDumpExecutionFrequency.parse("66/19h");
+    final ExecutionFrequency s4 =
+        ExecutionFrequency.parse("66/19h");
     assertThat(s4.getExecutionAmount(), is(66));
     assertThat(s4.getTimeFrameInMillis(), is(19 * 60 * 60 * 1000L));
   }

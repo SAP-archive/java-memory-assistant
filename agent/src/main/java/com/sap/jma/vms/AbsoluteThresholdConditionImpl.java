@@ -6,11 +6,13 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.Configuration;
+import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.Comparison;
+import com.sap.jma.configuration.MemorySizeUnit;
 import com.sap.jma.logging.Logger;
 
 public abstract class AbsoluteThresholdConditionImpl extends
-    AbstractUsageThresholdConditionImpl<Configuration.AbsoluteThresholdConfiguration> {
+    AbstractUsageThresholdConditionImpl<AbsoluteThresholdConfiguration> {
 
   // VisibleForTesting
   private final Logger logger;
@@ -27,11 +29,11 @@ public abstract class AbsoluteThresholdConditionImpl extends
   protected abstract double getCurrentUsageInBytes();
 
   public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
-    final Configuration.AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
+    final AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
     final double currentUsageInBytes = getCurrentUsageInBytes();
     final double targetUsageInBytes = usageThreshold.getTargetValueInBytes();
-    final Configuration.MemorySizeUnit memorySizeUnit = usageThreshold.getMemorySizeUnit();
-    final Configuration.Comparison comparison = usageThreshold.getComparison();
+    final MemorySizeUnit memorySizeUnit = usageThreshold.getMemorySizeUnit();
+    final Comparison comparison = usageThreshold.getComparison();
 
     if (comparison.compare(currentUsageInBytes, targetUsageInBytes)) {
       throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
@@ -41,8 +43,8 @@ public abstract class AbsoluteThresholdConditionImpl extends
 
   private String getDescription(final double actualUsage,
                                 final double targetUsage,
-                                final Configuration.MemorySizeUnit memorySize,
-                                final Configuration.Comparison comparisonOperator) {
+                                final MemorySizeUnit memorySize,
+                                final Comparison comparisonOperator) {
     final String comparisonHumanReadable;
     switch (comparisonOperator) {
       case SMALLER_THAN:
@@ -71,9 +73,9 @@ public abstract class AbsoluteThresholdConditionImpl extends
 
   @Override
   public String toString() {
-    final Configuration.AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
+    final AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
 
-    final Configuration.Comparison comparison = usageThreshold.getComparison();
+    final Comparison comparison = usageThreshold.getComparison();
     final String comparisonHumanReadable = toHumanReadable(comparison);
 
     return String.format("Memory pool '%s' used %s %s%s", getMemoryPoolName(),
@@ -81,7 +83,7 @@ public abstract class AbsoluteThresholdConditionImpl extends
         usageThreshold.getMemorySizeUnit().getLiteral());
   }
 
-  private static String toHumanReadable(Configuration.Comparison comparison) {
+  private static String toHumanReadable(Comparison comparison) {
     switch (comparison) {
       case SMALLER_THAN:
         return "smaller than";

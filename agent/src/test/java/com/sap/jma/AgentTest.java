@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.sap.jma.configuration.Configuration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.testapi.TemporarySystemProperties;
 import org.junit.Rule;

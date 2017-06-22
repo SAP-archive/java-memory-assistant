@@ -18,6 +18,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.sap.jma.configuration.Configuration;
 import com.sap.jma.logging.Logger;
 import org.junit.After;
 import org.junit.Before;

@@ -6,8 +6,11 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.Configuration;
-import com.sap.jma.Configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.Configuration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.PercentageThresholdConfiguration;
+import com.sap.jma.configuration.ThresholdConfiguration;
 import java.lang.management.MemoryPoolMXBean;
 
 abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
@@ -21,7 +24,7 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
   static JavaVirtualMachine.MemoryPool from(final JavaVirtualMachine.MemoryPoolType type) {
     return new MemoryPoolImpl(type.getDefaultname()) {
       @Override
-      public Configuration.ThresholdConfiguration getThreshold(final Configuration configuration) {
+      public ThresholdConfiguration getThreshold(final Configuration configuration) {
         return type.getThreshold(configuration);
       }
     };
@@ -33,11 +36,11 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
 
   public final JavaVirtualMachine.UsageThresholdCondition getUsageCondition(
       final MemoryPoolMXBean memoryPoolBean, final Configuration configuration) {
-    final Configuration.ThresholdConfiguration thresholdConfiguration = getThreshold(configuration);
+    final ThresholdConfiguration thresholdConfiguration = getThreshold(configuration);
 
     if (thresholdConfiguration == null) {
       return null;
-    } else if (thresholdConfiguration instanceof Configuration.AbsoluteThresholdConfiguration) {
+    } else if (thresholdConfiguration instanceof AbsoluteThresholdConfiguration) {
       return new AbsoluteThresholdConditionImpl() {
 
         @Override
@@ -51,12 +54,12 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
         }
 
         @Override
-        public Configuration.AbsoluteThresholdConfiguration getUsageThreshold() {
-          return (Configuration.AbsoluteThresholdConfiguration) thresholdConfiguration;
+        public AbsoluteThresholdConfiguration getUsageThreshold() {
+          return (AbsoluteThresholdConfiguration) thresholdConfiguration;
         }
 
       };
-    } else if (thresholdConfiguration instanceof Configuration.PercentageThresholdConfiguration) {
+    } else if (thresholdConfiguration instanceof PercentageThresholdConfiguration) {
       return new PercentageThresholdConditionImpl() {
 
         @Override
@@ -75,8 +78,8 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
         }
 
         @Override
-        public Configuration.PercentageThresholdConfiguration getUsageThreshold() {
-          return (Configuration.PercentageThresholdConfiguration) thresholdConfiguration;
+        public PercentageThresholdConfiguration getUsageThreshold() {
+          return (PercentageThresholdConfiguration) thresholdConfiguration;
         }
 
       };
@@ -109,6 +112,6 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
     }
   }
 
-  protected abstract Configuration.ThresholdConfiguration getThreshold(Configuration configuration);
+  protected abstract ThresholdConfiguration getThreshold(Configuration configuration);
 
 }

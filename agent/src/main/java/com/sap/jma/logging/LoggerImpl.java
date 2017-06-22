@@ -6,7 +6,7 @@
 
 package com.sap.jma.logging;
 
-import com.sap.jma.Configuration;
+import com.sap.jma.configuration.Configuration;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;

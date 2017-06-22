@@ -6,6 +6,7 @@
 
 package com.sap.jma;
 
+import com.sap.jma.configuration.Configuration;
 import com.sap.jma.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
