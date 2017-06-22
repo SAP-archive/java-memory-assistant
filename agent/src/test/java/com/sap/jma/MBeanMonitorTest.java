@@ -25,13 +25,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Configuration;
 import com.sap.jma.configuration.InvalidPropertyValueException;
-import com.sap.jma.configuration.PercentageThresholdConfiguration;
+import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.JavaVirtualMachine;
-import com.sap.jma.vms.PercentageThresholdConditionImpl;
+import com.sap.jma.vms.PercentageUsageThresholdConditionImpl;
+import com.sap.jma.vms.UsageThresholdCondition;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
@@ -56,26 +57,26 @@ import org.junit.runner.RunWith;
 @RunWith(Enclosed.class)
 public class MBeanMonitorTest {
 
-  private static AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+  private static AbsoluteUsageThresholdConfiguration absoluteThresholdConfiguration(
       final String value) throws InvalidPropertyValueException {
     return absoluteThresholdConfiguration(JavaVirtualMachine.MemoryPoolType.HEAP, value);
   }
 
-  private static AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+  private static AbsoluteUsageThresholdConfiguration absoluteThresholdConfiguration(
       final JavaVirtualMachine.MemoryPoolType memoryPool, final String value)
       throws InvalidPropertyValueException {
-    return AbsoluteThresholdConfiguration.parse(memoryPool, value);
+    return AbsoluteUsageThresholdConfiguration.parse(memoryPool, value);
   }
 
-  private static PercentageThresholdConfiguration
+  private static PercentageUsageThresholdConfiguration
         percentageThresholdConfiguration(final double usageThreshold) {
     return percentageThresholdConfiguration(JavaVirtualMachine.MemoryPoolType.HEAP, usageThreshold);
   }
 
-  private static PercentageThresholdConfiguration
+  private static PercentageUsageThresholdConfiguration
         percentageThresholdConfiguration(final JavaVirtualMachine.MemoryPoolType memoryPool,
                                          final double usageThreshold) {
-    return new PercentageThresholdConfiguration(memoryPool, usageThreshold);
+    return new PercentageUsageThresholdConfiguration(memoryPool, usageThreshold);
   }
 
   public static class BasicTest {
@@ -125,13 +126,13 @@ public class MBeanMonitorTest {
     public void testNoCheckIntervalSpecifiedOneCondition() throws Exception {
       final JavaVirtualMachine.MemoryPool memoryPool = mock(JavaVirtualMachine.MemoryPool.class);
       final MemoryPoolMXBean memoryPoolBean = mock(MemoryPoolMXBean.class);
-      final JavaVirtualMachine.UsageThresholdCondition usageCondition =
-          mock(JavaVirtualMachine.UsageThresholdCondition.class);
+      final UsageThresholdCondition usageCondition =
+          mock(UsageThresholdCondition.class);
 
       doReturn(Collections.singletonList(memoryPoolBean)).when(subject).getMemoryPoolMxBeans();
       doReturn(memoryPool).when(jvm).findMemoryPool(memoryPoolBean);
       doReturn(usageCondition).when(memoryPool).getUsageCondition(memoryPoolBean, configuration);
-      doReturn(percentageThresholdConfiguration(42d)).when(usageCondition).getUsageThreshold();
+      doReturn(percentageThresholdConfiguration(42d)).when(usageCondition).getUsageThresholdCondition();
 
       doReturn(-1L).when(configuration).getCheckIntervalInMillis();
 
@@ -146,21 +147,21 @@ public class MBeanMonitorTest {
     public void testNoCheckIntervalSpecifiedTwoConditions() throws Exception {
       final JavaVirtualMachine.MemoryPool memoryPool1 = mock(JavaVirtualMachine.MemoryPool.class);
       final MemoryPoolMXBean memoryPoolBean1 = mock(MemoryPoolMXBean.class);
-      final JavaVirtualMachine.UsageThresholdCondition usageCondition1 =
-          mock(JavaVirtualMachine.UsageThresholdCondition.class);
+      final UsageThresholdCondition usageCondition1 =
+          mock(UsageThresholdCondition.class);
 
       final JavaVirtualMachine.MemoryPool memoryPool2 = mock(JavaVirtualMachine.MemoryPool.class);
       final MemoryPoolMXBean memoryPoolBean2 = mock(MemoryPoolMXBean.class);
-      final JavaVirtualMachine.UsageThresholdCondition usageCondition2 =
-          mock(JavaVirtualMachine.UsageThresholdCondition.class);
+      final UsageThresholdCondition usageCondition2 =
+          mock(UsageThresholdCondition.class);
 
       doReturn(memoryPool1).when(jvm).findMemoryPool(memoryPoolBean1);
       doReturn(usageCondition1).when(memoryPool1).getUsageCondition(memoryPoolBean1, configuration);
-      doReturn(percentageThresholdConfiguration(42d)).when(usageCondition1).getUsageThreshold();
+      doReturn(percentageThresholdConfiguration(42d)).when(usageCondition1).getUsageThresholdCondition();
 
       doReturn(memoryPool2).when(jvm).findMemoryPool(memoryPoolBean2);
       doReturn(usageCondition2).when(memoryPool2).getUsageCondition(memoryPoolBean2, configuration);
-      doReturn(percentageThresholdConfiguration(24d)).when(usageCondition2).getUsageThreshold();
+      doReturn(percentageThresholdConfiguration(24d)).when(usageCondition2).getUsageThresholdCondition();
 
       doReturn(Arrays.asList(memoryPoolBean1, memoryPoolBean2))
           .when(subject).getMemoryPoolMxBeans();
@@ -1016,7 +1017,7 @@ public class MBeanMonitorTest {
      */
     @Test
     public void testInfiniteNumbersOfDecimals() throws Exception {
-      new PercentageThresholdConditionImpl() {
+      new PercentageUsageThresholdConditionImpl() {
         protected String getMemoryPoolName() {
           return "Test";
         }
@@ -1029,8 +1030,8 @@ public class MBeanMonitorTest {
           return 365L;
         }
 
-        public PercentageThresholdConfiguration getUsageThreshold() {
-          return new PercentageThresholdConfiguration(
+        public PercentageUsageThresholdConfiguration getUsageThresholdCondition() {
+          return new PercentageUsageThresholdConfiguration(
               JavaVirtualMachine.MemoryPoolType.HEAP, 50f);
         }
 

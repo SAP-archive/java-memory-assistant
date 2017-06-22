@@ -6,25 +6,25 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
+import com.sap.jma.vms.UsageThresholdCondition;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PercentageThresholdConfiguration implements ThresholdConfiguration {
+public class PercentageUsageThresholdConfiguration implements UsageThresholdConfiguration {
 
   private static final Pattern PERCENTAGE_PATTERN = Pattern.compile("(\\d*\\.?\\d*\\d)%");
   private final double value;
   private final MemoryPoolType memoryPool;
 
-  public PercentageThresholdConfiguration(final MemoryPoolType memoryPool, final double value) {
+  public PercentageUsageThresholdConfiguration(final MemoryPoolType memoryPool, final double value) {
     this.memoryPool = memoryPool;
     this.value = value;
   }
 
-  public static PercentageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
-                                                final String value)
+  public static PercentageUsageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
+                                                            final String value)
       throws InvalidPropertyValueException {
     final Matcher matcher = PERCENTAGE_PATTERN.matcher(value);
 
@@ -55,7 +55,7 @@ public class PercentageThresholdConfiguration implements ThresholdConfiguration 
               + "decimal precision (e.g., 42.42)"), new NumberFormatException());
     }
 
-    return new PercentageThresholdConfiguration(memoryPoolType, f);
+    return new PercentageUsageThresholdConfiguration(memoryPoolType, f);
   }
 
   @Override

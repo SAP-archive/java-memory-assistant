@@ -8,7 +8,7 @@ package com.sap.jma.configuration;
 
 import com.sap.jma.vms.JavaVirtualMachine;
 
-public interface ThresholdConfiguration {
+public interface UsageThresholdConfiguration {
 
   JavaVirtualMachine.MemoryPoolType getMemoryPool();
 

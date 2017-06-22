@@ -10,7 +10,6 @@ import static com.sap.jma.configuration.IntervalTimeUnit.MILLISECONDS;
 
 import com.sap.jma.HeapDumpNameFormatter;
 import com.sap.jma.logging.Logger;
-import com.sap.jma.utils.EnumUtils;
 import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
 import java.io.File;
 import java.io.IOException;
@@ -71,14 +70,14 @@ public class Configuration {
   private File heapDumpFolder = new File(System.getProperty("user.dir"));
   private Logger.Severity logLevel = DEFAULT_LOG_LEVEL;
   private IntervalSpecification checkInterval = new IntervalSpecification(-1d, MILLISECONDS);
-  private ThresholdConfiguration heapMemoryUsageThreshold;
-  private ThresholdConfiguration codeCacheMemoryUsageThreshold;
-  private ThresholdConfiguration permGenMemoryUsageThreshold;
-  private ThresholdConfiguration metaSpaceMemoryUsageThreshold;
-  private ThresholdConfiguration compressedClassSpaceMemoryUsageThreshold;
-  private ThresholdConfiguration edenSpaceMemoryUsageThreshold;
-  private ThresholdConfiguration survivorSpaceMemoryUsageThreshold;
-  private ThresholdConfiguration oldGenSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration heapMemoryUsageThreshold;
+  private UsageThresholdConfiguration codeCacheMemoryUsageThreshold;
+  private UsageThresholdConfiguration permGenMemoryUsageThreshold;
+  private UsageThresholdConfiguration metaSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration compressedClassSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration edenSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration survivorSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration oldGenSpaceMemoryUsageThreshold;
   private String executeBefore;
   private String executeAfter;
   private String executeOnShutDown;
@@ -117,35 +116,35 @@ public class Configuration {
     return checkInterval == null ? DISABLED_INTERVAL : checkInterval.toMilliSeconds();
   }
 
-  public ThresholdConfiguration getHeapMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getHeapMemoryUsageThreshold() {
     return heapMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getCodeCacheMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getCodeCacheMemoryUsageThreshold() {
     return codeCacheMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getMetaspaceMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getMetaspaceMemoryUsageThreshold() {
     return metaSpaceMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getPermGenMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getPermGenMemoryUsageThreshold() {
     return permGenMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getCompressedClassSpaceMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getCompressedClassSpaceMemoryUsageThreshold() {
     return compressedClassSpaceMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getEdenSpaceMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getEdenSpaceMemoryUsageThreshold() {
     return edenSpaceMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getSurvivorSpaceMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getSurvivorSpaceMemoryUsageThreshold() {
     return survivorSpaceMemoryUsageThreshold;
   }
 
-  public ThresholdConfiguration getOldGenSpaceMemoryUsageThreshold() {
+  public UsageThresholdConfiguration getOldGenSpaceMemoryUsageThreshold() {
     return oldGenSpaceMemoryUsageThreshold;
   }
 
@@ -424,8 +423,8 @@ public class Configuration {
       }
     }
 
-    private static ThresholdConfiguration parseThreshold(final MemoryPoolType memoryPool,
-                                                         final String value)
+    private static UsageThresholdConfiguration parseThreshold(final MemoryPoolType memoryPool,
+                                                              final String value)
         throws InvalidPropertyValueException {
       final String trimmedValue = value.trim();
       if (trimmedValue.length() < 1) {
@@ -438,13 +437,13 @@ public class Configuration {
         final char initialCharacter = trimmedValue.charAt(0);
         if (initialCharacter >= '0' && initialCharacter <= '9') {
           type = "percentage";
-          return PercentageThresholdConfiguration.parse(memoryPool, value);
+          return PercentageUsageThresholdConfiguration.parse(memoryPool, value);
         } else if (initialCharacter == '<' || initialCharacter == '=' || initialCharacter == '>') {
           type = "absolute";
-          return AbsoluteThresholdConfiguration.parse(memoryPool, value);
+          return AbsoluteUsageThresholdConfiguration.parse(memoryPool, value);
         } else {
           type = "increase-over-timeframe";
-          return IncreaseOverTimeFrameThresholdConfiguration.parse(memoryPool, value);
+          return IncreaseOverTimeFrameUsageThresholdConfiguration.parse(memoryPool, value);
         }
       } catch (final InvalidPropertyValueException ex) {
         throw new InvalidPropertyValueException("cannot parse the value '" + value + "' as "
@@ -615,21 +614,21 @@ public class Configuration {
        */
       if (config.checkInterval.toMilliSeconds() > 0) {
         for (final Field configField : config.getClass().getDeclaredFields()) {
-          if (ThresholdConfiguration.class.isAssignableFrom(configField.getType())) {
+          if (UsageThresholdConfiguration.class.isAssignableFrom(configField.getType())) {
             try {
               configField.setAccessible(true);
 
-              final IncreaseOverTimeFrameThresholdConfiguration configValue;
+              final IncreaseOverTimeFrameUsageThresholdConfiguration configValue;
 
               {
-                final ThresholdConfiguration thresholdConfiguration =
-                    (ThresholdConfiguration) configField.get(config);
-                if (!(thresholdConfiguration
-                    instanceof IncreaseOverTimeFrameThresholdConfiguration)) {
+                final UsageThresholdConfiguration usageThresholdConfiguration =
+                    (UsageThresholdConfiguration) configField.get(config);
+                if (!(usageThresholdConfiguration
+                    instanceof IncreaseOverTimeFrameUsageThresholdConfiguration)) {
                   continue;
                 }
 
-                configValue = (IncreaseOverTimeFrameThresholdConfiguration) thresholdConfiguration;
+                configValue = (IncreaseOverTimeFrameUsageThresholdConfiguration) usageThresholdConfiguration;
               }
 
               final double timeFrame = configValue.getTimeFrame();

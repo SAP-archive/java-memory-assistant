@@ -6,18 +6,17 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AbsoluteThresholdConfiguration implements ThresholdConfiguration {
+public class AbsoluteUsageThresholdConfiguration implements UsageThresholdConfiguration {
 
   private static final Pattern ABSOLUTE_PATTERN =
       Pattern.compile("([<=>]+)(\\d*\\.?\\d*\\d)([KMG]?B)");
 
-  public static AbsoluteThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
-                                                     final String value)
+  public static AbsoluteUsageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
+                                                          final String value)
       throws InvalidPropertyValueException {
     final Matcher matcher = ABSOLUTE_PATTERN.matcher(value);
 
@@ -33,7 +32,7 @@ public class AbsoluteThresholdConfiguration implements ThresholdConfiguration {
 
       final double valueInBytes = memorySizeUnit.toBytes(valueInUnitSize);
 
-      return new AbsoluteThresholdConfiguration(memoryPoolType, comparison, valueInBytes,
+      return new AbsoluteUsageThresholdConfiguration(memoryPoolType, comparison, valueInBytes,
           memorySizeUnit, value);
     } catch (final Exception ex) {
       throw new InvalidPropertyValueException("cannot be parsed", ex);
@@ -46,11 +45,11 @@ public class AbsoluteThresholdConfiguration implements ThresholdConfiguration {
   private final MemorySizeUnit memorySizeUnit;
   private final String configurationValue;
 
-  AbsoluteThresholdConfiguration(final MemoryPoolType memoryPool,
-                                 final Comparison comparison,
-                                 final double targetValueInBytes,
-                                 final MemorySizeUnit memorySizeUnit,
-                                 final String configurationValue) {
+  AbsoluteUsageThresholdConfiguration(final MemoryPoolType memoryPool,
+                                      final Comparison comparison,
+                                      final double targetValueInBytes,
+                                      final MemorySizeUnit memorySizeUnit,
+                                      final String configurationValue) {
     this.memoryPool = memoryPool;
     this.comparison = comparison;
     this.targetValueInBytes = targetValueInBytes;

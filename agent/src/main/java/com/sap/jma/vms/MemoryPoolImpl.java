@@ -6,11 +6,11 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Configuration;
-import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
-import com.sap.jma.configuration.PercentageThresholdConfiguration;
-import com.sap.jma.configuration.ThresholdConfiguration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
+import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
+import com.sap.jma.configuration.UsageThresholdConfiguration;
 import java.lang.management.MemoryPoolMXBean;
 
 abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
@@ -24,7 +24,7 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
   static JavaVirtualMachine.MemoryPool from(final JavaVirtualMachine.MemoryPoolType type) {
     return new MemoryPoolImpl(type.getDefaultname()) {
       @Override
-      public ThresholdConfiguration getThreshold(final Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return type.getThreshold(configuration);
       }
     };
@@ -34,14 +34,14 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
     return literal.equals(memoryPoolBean.getName());
   }
 
-  public final JavaVirtualMachine.UsageThresholdCondition getUsageCondition(
+  public final UsageThresholdCondition getUsageCondition(
       final MemoryPoolMXBean memoryPoolBean, final Configuration configuration) {
-    final ThresholdConfiguration thresholdConfiguration = getThreshold(configuration);
+    final UsageThresholdConfiguration usageThresholdConfiguration = getThreshold(configuration);
 
-    if (thresholdConfiguration == null) {
+    if (usageThresholdConfiguration == null) {
       return null;
-    } else if (thresholdConfiguration instanceof AbsoluteThresholdConfiguration) {
-      return new AbsoluteThresholdConditionImpl() {
+    } else if (usageThresholdConfiguration instanceof AbsoluteUsageThresholdConfiguration) {
+      return new AbsoluteUsageThresholdConditionImpl() {
 
         @Override
         protected String getMemoryPoolName() {
@@ -54,13 +54,13 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
         }
 
         @Override
-        public AbsoluteThresholdConfiguration getUsageThreshold() {
-          return (AbsoluteThresholdConfiguration) thresholdConfiguration;
+        public AbsoluteUsageThresholdConfiguration getUsageThresholdCondition() {
+          return (AbsoluteUsageThresholdConfiguration) usageThresholdConfiguration;
         }
 
       };
-    } else if (thresholdConfiguration instanceof PercentageThresholdConfiguration) {
-      return new PercentageThresholdConditionImpl() {
+    } else if (usageThresholdConfiguration instanceof PercentageUsageThresholdConfiguration) {
+      return new PercentageUsageThresholdConditionImpl() {
 
         @Override
         protected String getMemoryPoolName() {
@@ -78,13 +78,13 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
         }
 
         @Override
-        public PercentageThresholdConfiguration getUsageThreshold() {
-          return (PercentageThresholdConfiguration) thresholdConfiguration;
+        public PercentageUsageThresholdConfiguration getUsageThresholdCondition() {
+          return (PercentageUsageThresholdConfiguration) usageThresholdConfiguration;
         }
 
       };
-    } else if (thresholdConfiguration instanceof IncreaseOverTimeFrameThresholdConfiguration) {
-      return new IncreaseOverTimeFrameThresholdConditionImpl() {
+    } else if (usageThresholdConfiguration instanceof IncreaseOverTimeFrameUsageThresholdConfiguration) {
+      return new IncreaseOverTimeFrameUsageThresholdConditionImpl() {
 
         @Override
         protected String getMemoryPoolName() {
@@ -102,16 +102,16 @@ abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
         }
 
         @Override
-        public IncreaseOverTimeFrameThresholdConfiguration getUsageThreshold() {
-          return (IncreaseOverTimeFrameThresholdConfiguration) thresholdConfiguration;
+        public IncreaseOverTimeFrameUsageThresholdConfiguration getUsageThresholdCondition() {
+          return (IncreaseOverTimeFrameUsageThresholdConfiguration) usageThresholdConfiguration;
         }
       };
     } else {
       throw new IllegalStateException("Unknown type of threshold configuration: "
-          + thresholdConfiguration);
+          + usageThresholdConfiguration);
     }
   }
 
-  protected abstract ThresholdConfiguration getThreshold(Configuration configuration);
+  protected abstract UsageThresholdConfiguration getThreshold(Configuration configuration);
 
 }

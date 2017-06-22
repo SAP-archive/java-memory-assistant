@@ -6,19 +6,19 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.ThresholdConfiguration;
+import com.sap.jma.configuration.UsageThresholdConfiguration;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-abstract class AbstractUsageThresholdConditionImpl<C extends ThresholdConfiguration>
-    implements JavaVirtualMachine.UsageThresholdCondition<C> {
+abstract class AbstractUsageThresholdConditionImpl<C extends UsageThresholdConfiguration>
+    implements UsageThresholdCondition<C> {
 
   static final DecimalFormat DECIMAL_FORMAT =
       new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US));
 
   protected abstract String getMemoryPoolName();
 
-  public abstract C getUsageThreshold();
+  public abstract C getUsageThresholdCondition();
 
 }
