@@ -6,7 +6,7 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.Configuration.ThresholdConfiguration;
+import com.sap.jma.configuration.ThresholdConfiguration;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;

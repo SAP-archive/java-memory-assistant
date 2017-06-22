@@ -4,22 +4,23 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma;
+package com.sap.jma.configuration;
 
+import static com.sap.jma.configuration.IntervalTimeUnit.MILLISECONDS;
+
+import com.sap.jma.HeapDumpNameFormatter;
 import com.sap.jma.logging.Logger;
+import com.sap.jma.utils.EnumUtils;
 import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -28,15 +29,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Configuration {
 
   public static final Logger.Severity DEFAULT_LOG_LEVEL = Logger.Severity.ERROR;
-  // VisibleForTesting
-  static final String DEFAULT_NAME_PATTERN = "heapdump_%host_name%_%ts:yyyyMMddHHmmss%.hprof";
+  public static final String DEFAULT_NAME_PATTERN =
+      "heapdump_%host_name%_%ts:yyyyMMddHHmmss%.hprof";
   private static final long DISABLED_INTERVAL = -1L;
 
   private static final String[] JAVA_MEMORY_ASSISTANT_CONFIGURATIONS_PREFIXES =
@@ -67,12 +66,11 @@ public class Configuration {
 
   private final List<String> overrides = new LinkedList<>();
   private boolean enabled = false;
-  private HeapDumpExecutionFrequency maxFrequency;
+  private ExecutionFrequency maxFrequency;
   private String heapDumpName = DEFAULT_NAME_PATTERN;
   private File heapDumpFolder = new File(System.getProperty("user.dir"));
   private Logger.Severity logLevel = DEFAULT_LOG_LEVEL;
-  private IntervalSpecification checkInterval =
-      new IntervalSpecification(-1d, IntervalTimeUnit.MILLISECONDS);
+  private IntervalSpecification checkInterval = new IntervalSpecification(-1d, MILLISECONDS);
   private ThresholdConfiguration heapMemoryUsageThreshold;
   private ThresholdConfiguration codeCacheMemoryUsageThreshold;
   private ThresholdConfiguration permGenMemoryUsageThreshold;
@@ -99,7 +97,7 @@ public class Configuration {
     return enabled;
   }
 
-  public HeapDumpExecutionFrequency getMaxFrequency() {
+  public ExecutionFrequency getMaxFrequency() {
     return maxFrequency;
   }
 
@@ -258,7 +256,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.maxFrequency = HeapDumpExecutionFrequency.parse(value);
+        config.maxFrequency = ExecutionFrequency.parse(value);
       }
 
     },
@@ -494,73 +492,7 @@ public class Configuration {
 
   }
 
-  public enum IntervalTimeUnit {
-
-    MILLISECONDS("ms", 1, TimeUnit.MILLISECONDS),
-
-    SECONDS("s", 1000, TimeUnit.SECONDS),
-
-    MINUTES("m", 1000 * 60, TimeUnit.MINUTES),
-
-    HOURS("h", 1000 * 60 * 60, TimeUnit.HOURS);
-
-    private static final Pattern INTERVAL_PATTERN = Pattern.compile("(\\d*\\.?\\d*\\d)(ms|s|m|h)");
-
-    private final String literal;
-
-    private final int millisMultiplier;
-
-    private final TimeUnit timeUnit;
-
-    IntervalTimeUnit(final String literal, final int millisMultiplier, final TimeUnit timeUnit) {
-      this.literal = literal;
-      this.millisMultiplier = millisMultiplier;
-      this.timeUnit = timeUnit;
-    }
-
-    public static IntervalTimeUnit from(final String literal) throws NoSuchElementException {
-      for (final IntervalTimeUnit unit : IntervalTimeUnit.values()) {
-        if (unit.literal.equals(literal)) {
-          return unit;
-        }
-      }
-
-      throw new NoSuchElementException(String.format("The interval time unit '%s' is unknown",
-          literal));
-    }
-
-    public static IntervalTimeUnit from(final TimeUnit timeUnit) {
-      for (final IntervalTimeUnit itu : IntervalTimeUnit.values()) {
-        if (itu.timeUnit == timeUnit) {
-          return itu;
-        }
-      }
-
-      throw new NoSuchElementException(
-          String.format("No interval time unit mapped to TimeUnit '%s'", timeUnit.name()));
-    }
-
-    public String getLiteral() {
-      return literal;
-    }
-
-    public double fromMilliseconds(final long timeFrameInMillis) {
-      return Math.round(timeFrameInMillis * 100d / millisMultiplier) / 100d;
-    }
-
-    public long toMilliSeconds(final double value) {
-      return Double.valueOf(Math.floor(value * millisMultiplier)).longValue();
-    }
-
-  }
-
-  public interface ThresholdConfiguration {
-
-    MemoryPoolType getMemoryPool();
-
-  }
-
-  static class Builder {
+  public static class Builder {
 
     private final Logger logger;
     private final Configuration config = new Configuration();
@@ -569,7 +501,7 @@ public class Configuration {
       this.logger = logger;
     }
 
-    static Builder initializeFromSystemProperties() throws IllegalArgumentException {
+    public static Builder initializeFromSystemProperties() throws IllegalArgumentException {
       return initializeFromSystemProperties(Logger.Factory.get(Builder.class));
     }
 
@@ -746,519 +678,6 @@ public class Configuration {
       }
     }
 
-  }
-
-  static class IntervalSpecification {
-
-    private final double value;
-
-    private final IntervalTimeUnit intervalTimeUnit;
-
-    IntervalSpecification(final double value, final IntervalTimeUnit intervalTimeUnit) {
-      this.value = value;
-      this.intervalTimeUnit = intervalTimeUnit;
-    }
-
-    public double getValue() {
-      return value;
-    }
-
-    public IntervalTimeUnit getIntervalTimeUnit() {
-      return intervalTimeUnit;
-    }
-
-    public long toMilliSeconds() {
-      return intervalTimeUnit.toMilliSeconds(value);
-    }
-  }
-
-  public enum MemorySizeUnit {
-
-    GIGABYTE("GB", 1024 * 1024 * 1024d),
-
-    MEGABYTE("MB", 1024 * 1024d),
-
-    KILOBYTE("KB", 1024d),
-
-    BYTE("B", 1d);
-
-    private final String literal;
-    private final double multiplierToBytes;
-
-    MemorySizeUnit(final String literal, final double multiplierToBytes) {
-      this.literal = literal;
-      this.multiplierToBytes = multiplierToBytes;
-    }
-
-    public static MemorySizeUnit from(final String actual) {
-      for (final MemorySizeUnit unit : values()) {
-        if (unit.literal.equals(actual.trim())) {
-          return unit;
-        }
-      }
-
-      throw new IllegalArgumentException(
-          String.format("Memory size unit '%s' is not recognized; valid values are: %s", actual,
-              Configuration.toString(values())));
-    }
-
-    public double toBytes(double valueInUnitSize) {
-      return valueInUnitSize * multiplierToBytes;
-    }
-
-    public String getLiteral() {
-      return literal;
-    }
-
-  }
-
-  public enum Comparison {
-    SMALLER_THAN("<") {
-      @Override
-      public boolean compare(double expected, double actual) {
-        return expected < actual;
-      }
-    },
-    SMALLER_THAN_OR_EQUAL_TO("<=") {
-      @Override
-      public boolean compare(double expected, double actual) {
-        return expected <= actual;
-      }
-    },
-    EQUAL_TO("==") {
-      @Override
-      public boolean compare(double expected, double actual) {
-        return expected == actual;
-      }
-    },
-    LARGER_THAN(">") {
-      @Override
-      public boolean compare(double expected, double actual) {
-        return expected > actual;
-      }
-    },
-    LARGER_THAN_OR_EQUAL_TO(">=") {
-      @Override
-      public boolean compare(double expected, double actual) {
-        return expected >= actual;
-      }
-    };
-
-    private final String literal;
-
-    Comparison(final String literal) {
-      this.literal = literal;
-    }
-
-    public abstract boolean compare(final double expected, final double actual);
-
-    public static Comparison from(final String actual) {
-      for (final Comparison comparison : values()) {
-        if (comparison.literal.equals(actual.trim())) {
-          return comparison;
-        }
-      }
-
-      throw new IllegalArgumentException(
-          String.format("Comparison operator '%s' is not recognized; valid values are: %s",
-              actual, Configuration.toString(values())));
-    }
-
-  }
-
-  public static class AbsoluteThresholdConfiguration implements ThresholdConfiguration {
-
-    private static final Pattern ABSOLUTE_PATTERN =
-        Pattern.compile("([<=>]+)(\\d*\\.?\\d*\\d)([KMG]?B)");
-
-    static AbsoluteThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
-                                                final String value)
-        throws InvalidPropertyValueException {
-      final Matcher matcher = ABSOLUTE_PATTERN.matcher(value);
-
-      if (!matcher.matches()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s'", ABSOLUTE_PATTERN.pattern()));
-      }
-
-      try {
-        final Comparison comparison = Comparison.from(matcher.group(1));
-        final double valueInUnitSize = Double.parseDouble(matcher.group(2));
-        final MemorySizeUnit memorySizeUnit = MemorySizeUnit.from(matcher.group(3));
-
-        final double valueInBytes = memorySizeUnit.toBytes(valueInUnitSize);
-
-        return new AbsoluteThresholdConfiguration(memoryPoolType, comparison, valueInBytes,
-            memorySizeUnit, value);
-      } catch (final Exception ex) {
-        throw new InvalidPropertyValueException("cannot be parsed", ex);
-      }
-    }
-
-    private final MemoryPoolType memoryPool;
-    private final Comparison comparison;
-    private final double targetValueInBytes;
-    private final MemorySizeUnit memorySizeUnit;
-    private final String configurationValue;
-
-    AbsoluteThresholdConfiguration(final MemoryPoolType memoryPool,
-                                   final Comparison comparison,
-                                   final double targetValueInBytes,
-                                   final MemorySizeUnit memorySizeUnit,
-                                   final String configurationValue) {
-      this.memoryPool = memoryPool;
-      this.comparison = comparison;
-      this.targetValueInBytes = targetValueInBytes;
-      this.memorySizeUnit = memorySizeUnit;
-      this.configurationValue = configurationValue;
-    }
-
-    public Comparison getComparison() {
-      return comparison;
-    }
-
-    public double getTargetValueInBytes() {
-      return targetValueInBytes;
-    }
-
-    public MemorySizeUnit getMemorySizeUnit() {
-      return memorySizeUnit;
-    }
-
-    @Override
-    public MemoryPoolType getMemoryPool() {
-      return memoryPool;
-    }
-
-    @Override
-    public String toString() {
-      return memoryPool + " " + configurationValue;
-    }
-  }
-
-  public static class PercentageThresholdConfiguration implements ThresholdConfiguration {
-
-    private static final Pattern PERCENTAGE_PATTERN = Pattern.compile("(\\d*\\.?\\d*\\d)%");
-    private final double value;
-    private final MemoryPoolType memoryPool;
-
-    PercentageThresholdConfiguration(final MemoryPoolType memoryPool, final double value) {
-      this.memoryPool = memoryPool;
-      this.value = value;
-    }
-
-    static PercentageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
-                                                  final String value)
-        throws InvalidPropertyValueException {
-      final Matcher matcher = PERCENTAGE_PATTERN.matcher(value);
-
-      if (!matcher.matches()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s'", PERCENTAGE_PATTERN.pattern()));
-      }
-
-      final String valueString = matcher.group(1);
-      if (valueString.isEmpty()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s' and have at least "
-                + "a digit before the '%%' sign", PERCENTAGE_PATTERN.pattern()));
-      }
-
-      final double f = Double.parseDouble(valueString);
-      if (f < 0d || f > 100d) {
-        throw new InvalidPropertyValueException(
-            String.format("Usage threshold must be between 0f and 100f"),
-            new NumberFormatException());
-      }
-
-      final BigDecimal bd = new BigDecimal(valueString);
-      final int scale = bd.scale();
-      if (scale > 2) {
-        throw new InvalidPropertyValueException(
-            String.format("Usage thresholds can be specified only to the second "
-                + "decimal precision (e.g., 42.42)"), new NumberFormatException());
-      }
-
-      return new PercentageThresholdConfiguration(memoryPoolType, f);
-    }
-
-    @Override
-    public MemoryPoolType getMemoryPool() {
-      return memoryPool;
-    }
-
-    public double getValue() {
-      return value;
-    }
-
-  }
-
-  /*
-   * TODO Refactor to unify with HeapDumpExecutionFrequency?
-   */
-  public static class IncreaseOverTimeFrameThresholdConfiguration
-      implements ThresholdConfiguration {
-
-    private static final Pattern INCREASE_OVER_TIME_FRAME_PATTERN =
-        Pattern.compile("\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)");
-    private final MemoryPoolType memoryPool;
-    private final double delta;
-    private final double timeFrame;
-    private final IntervalTimeUnit timeUnit;
-
-    IncreaseOverTimeFrameThresholdConfiguration(final MemoryPoolType memoryPool,
-                                                final double delta,
-                                                final double timeFrame,
-                                                final IntervalTimeUnit timeUnit) {
-      this.memoryPool = memoryPool;
-      this.delta = delta;
-      this.timeFrame = timeFrame;
-      this.timeUnit = timeUnit;
-    }
-
-    public static IncreaseOverTimeFrameThresholdConfiguration parse(
-        final MemoryPoolType memoryPool,
-        final String value)
-        throws InvalidPropertyValueException {
-      final Matcher matcher = INCREASE_OVER_TIME_FRAME_PATTERN.matcher(value);
-
-      if (!matcher.matches()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s'",
-                INCREASE_OVER_TIME_FRAME_PATTERN.pattern()));
-      }
-
-      final String deltaString = matcher.group(1);
-      if (deltaString.isEmpty()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s' and have at "
-                + "least a digit before the '%%' sign",
-                INCREASE_OVER_TIME_FRAME_PATTERN.pattern()));
-      }
-
-      final double delta;
-      try {
-        delta = Double.parseDouble(deltaString);
-
-        if (delta <= 0) {
-          throw new NumberFormatException();
-        }
-      } catch (final NumberFormatException ex) {
-        throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the increase on memory usage in "
-                + "the time-frame: must be a positive Java double (0 < n <= %.2f)",
-                matcher.group(1), Double.MAX_VALUE), new NumberFormatException());
-      }
-
-      final String timeFrameValue = matcher.group(2);
-      final double timeFrameInt;
-      if (timeFrameValue.isEmpty()) {
-        timeFrameInt = 1;
-      } else {
-        try {
-          timeFrameInt = Double.parseDouble(timeFrameValue);
-
-          if (timeFrameInt < 1) {
-            throw new NumberFormatException();
-          }
-        } catch (final NumberFormatException ex) {
-          throw new InvalidPropertyValueException(
-              String.format("The value '%s' is not valid for the time-frame of memory usage "
-                  + "increase threshold: must be a positive Java integer (0 < n <= 2147483647)",
-                  timeFrameValue), new NumberFormatException());
-        }
-      }
-
-      final IntervalTimeUnit timeFrameUnit;
-      try {
-        timeFrameUnit = IntervalTimeUnit.from(matcher.group(3));
-      } catch (final NoSuchElementException ex) {
-        final StringBuilder values = new StringBuilder();
-        for (final IntervalTimeUnit unit : IntervalTimeUnit.values()) {
-          values.append(unit.literal);
-          values.append(',');
-          values.append(' ');
-        }
-        // Drop last ", "
-        values.setLength(values.length() - 2);
-
-        throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the time unit of "
-                + "the time-frame of memory usage increase threshold: valid values are "
-                + values, timeFrameValue));
-      }
-
-      return new IncreaseOverTimeFrameThresholdConfiguration(memoryPool, delta, timeFrameInt,
-          timeFrameUnit);
-    }
-
-    @Override
-    public MemoryPoolType getMemoryPool() {
-      return memoryPool;
-    }
-
-    public double getDelta() {
-      return delta;
-    }
-
-    public double getTimeFrame() {
-      return timeFrame;
-    }
-
-    public IntervalTimeUnit getTimeUnit() {
-      return timeUnit;
-    }
-  }
-
-  static final class HeapDumpExecutionFrequency {
-
-    private static final Pattern EXECUTION_FREQUENCY_PATTERN =
-        Pattern.compile("(\\d+)/(\\d*)(ms|s|m|h)");
-
-    private final int executionAmount;
-    private final long timeFrameInMillis;
-    protected final String spec;
-
-    HeapDumpExecutionFrequency(final int executionAmount, final long timeFrameInMillis,
-                               final String spec) {
-      this.executionAmount = executionAmount;
-      this.timeFrameInMillis = timeFrameInMillis;
-      this.spec = spec;
-    }
-
-    public int getExecutionAmount() {
-      return executionAmount;
-    }
-
-    public long getTimeFrameInMillis() {
-      return timeFrameInMillis;
-    }
-
-    public static HeapDumpExecutionFrequency parse(final String value)
-        throws InvalidPropertyValueException {
-      final Matcher matcher = EXECUTION_FREQUENCY_PATTERN.matcher(value);
-
-      if (!matcher.matches()) {
-        throw new InvalidPropertyValueException(
-            String.format("it must follow the Java pattern '%s'",
-                EXECUTION_FREQUENCY_PATTERN.pattern()));
-      }
-
-      final int maxCount;
-      try {
-        maxCount = Integer.parseInt(matcher.group(1));
-
-        if (maxCount < 1) {
-          throw new NumberFormatException();
-        }
-      } catch (final NumberFormatException ex) {
-        throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the max amount of heap dumps "
-                + "in a time-frame: must be a positive Java integer (0 < n <= 2147483647)",
-                matcher.group(1)));
-      }
-
-      final String timeFrameValue = matcher.group(2);
-      final int timeFrameInt;
-      if (timeFrameValue.isEmpty()) {
-        timeFrameInt = 1;
-      } else {
-        try {
-          timeFrameInt = Integer.parseInt(timeFrameValue);
-
-          if (timeFrameInt < 1) {
-            throw new NumberFormatException();
-          }
-        } catch (final NumberFormatException ex) {
-          throw new InvalidPropertyValueException(
-              String.format("The value '%s' is not valid for the time-frame of heap dumps: "
-                  + "must be a positive Java integer (0 < n <= 2147483647)", timeFrameValue));
-        }
-      }
-
-      final IntervalTimeUnit timeFrameUnit;
-      try {
-        timeFrameUnit = IntervalTimeUnit.from(matcher.group(3));
-      } catch (final NoSuchElementException ex) {
-        final StringBuilder values = new StringBuilder();
-        for (final IntervalTimeUnit unit : IntervalTimeUnit.values()) {
-          values.append(unit.literal);
-          values.append(',');
-          values.append(' ');
-        }
-        // Drop last ", "
-        values.setLength(values.length() - 2);
-
-        throw new InvalidPropertyValueException(
-            String.format("The value '%s' is not valid for the time unit of the time-frame "
-                + "of heap dumps: valid values are " + values, timeFrameValue));
-      }
-
-      return new HeapDumpExecutionFrequency(maxCount,
-          timeFrameUnit.toMilliSeconds(timeFrameInt), value);
-    }
-
-    // Side-effects. Ugly, but on JVM 7 every other option is uglier. Streams, we miss you!
-    void filterToRelevantEntries(final List<Date> executionHistory, final Date now) {
-      final Date latestRelevantTimestamp = getEarliestRelevantTimestamp(now);
-
-      final Iterator<Date> i = executionHistory.iterator();
-      while (i.hasNext()) {
-        final Date executionTimestamp = i.next();
-        if (executionTimestamp.before(latestRelevantTimestamp)) {
-          i.remove();
-        }
-      }
-
-      Collections.sort(executionHistory);
-    }
-
-    boolean canPerformExecution(final List<Date> executionHistory,
-                                       final Date newExecutionTime) {
-      final Date latestRelevantTimestamp = getEarliestRelevantTimestamp(newExecutionTime);
-
-      int count = 0;
-      for (final Date executionTimestamp : executionHistory) {
-        if (latestRelevantTimestamp.before(executionTimestamp)) {
-          count += 1;
-        }
-      }
-
-      return count < executionAmount;
-    }
-
-    private Date getEarliestRelevantTimestamp(Date now) {
-      return new Date(now.getTime() - timeFrameInMillis);
-    }
-
-  }
-
-  static class InvalidPropertyValueException extends Exception {
-
-    private InvalidPropertyValueException(String message) {
-      super(message);
-    }
-
-    private InvalidPropertyValueException(String message, Throwable cause) {
-      super(message, cause);
-    }
-
-  }
-
-  private static String toString(final Enum<? extends Enum>[] array) {
-    if (array == null || array.length < 1) {
-      return "";
-    }
-
-    final StringBuilder sb = new StringBuilder();
-    for (int i = 0, l = array.length; i < l; ++i) {
-      sb.append(array[i].toString());
-      if (i < l - 1) {
-        sb.append(", ");
-      }
-    }
-
-    return sb.toString();
   }
 
 }

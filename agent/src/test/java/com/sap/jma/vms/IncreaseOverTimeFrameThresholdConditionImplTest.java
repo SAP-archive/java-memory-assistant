@@ -15,7 +15,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.sap.jma.Configuration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.IntervalTimeUnit;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
 import java.util.concurrent.TimeUnit;
@@ -183,10 +184,10 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
       createCondition(final double delta, final double period,
                       final TimeUnit timeUnit, final MemoryPoolMock memoryPool)
       throws Exception {
-    final Configuration.IncreaseOverTimeFrameThresholdConfiguration configuration =
-        Configuration.IncreaseOverTimeFrameThresholdConfiguration.parse(memoryPool.getType(),
+    final IncreaseOverTimeFrameThresholdConfiguration configuration =
+        IncreaseOverTimeFrameThresholdConfiguration.parse(memoryPool.getType(),
             "+" + String.valueOf(delta) + "%/" + String.valueOf(period)
-            + Configuration.IntervalTimeUnit.from(timeUnit).getLiteral());
+            + IntervalTimeUnit.from(timeUnit).getLiteral());
     return new IncreaseOverTimeFrameThresholdConditionImpl(logger) {
 
       @Override
@@ -210,7 +211,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
       }
 
       @Override
-      public Configuration.IncreaseOverTimeFrameThresholdConfiguration getUsageThreshold() {
+      public IncreaseOverTimeFrameThresholdConfiguration getUsageThreshold() {
         return configuration;
       }
     };

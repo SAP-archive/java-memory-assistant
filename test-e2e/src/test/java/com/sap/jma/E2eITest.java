@@ -15,7 +15,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-import com.sap.jma.Configuration.Property;
+import com.sap.jma.configuration.Configuration;
+import com.sap.jma.configuration.Configuration.Property;
 import com.sap.jma.testapi.process.Process;
 import com.sap.jma.testapi.process.ProcessBuilder;
 import com.sap.jma.testapi.process.ProcessCondition;

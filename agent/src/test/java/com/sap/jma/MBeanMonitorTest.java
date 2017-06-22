@@ -6,7 +6,7 @@
 
 package com.sap.jma;
 
-import static com.sap.jma.Configuration.HeapDumpExecutionFrequency.parse;
+import static com.sap.jma.configuration.ExecutionFrequency.parse;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
@@ -25,6 +25,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.Configuration;
+import com.sap.jma.configuration.InvalidPropertyValueException;
+import com.sap.jma.configuration.PercentageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.PercentageThresholdConditionImpl;
@@ -52,26 +56,26 @@ import org.junit.runner.RunWith;
 @RunWith(Enclosed.class)
 public class MBeanMonitorTest {
 
-  private static Configuration.AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
-      final String value) throws Configuration.InvalidPropertyValueException {
+  private static AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+      final String value) throws InvalidPropertyValueException {
     return absoluteThresholdConfiguration(JavaVirtualMachine.MemoryPoolType.HEAP, value);
   }
 
-  private static Configuration.AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
+  private static AbsoluteThresholdConfiguration absoluteThresholdConfiguration(
       final JavaVirtualMachine.MemoryPoolType memoryPool, final String value)
-      throws Configuration.InvalidPropertyValueException {
-    return Configuration.AbsoluteThresholdConfiguration.parse(memoryPool, value);
+      throws InvalidPropertyValueException {
+    return AbsoluteThresholdConfiguration.parse(memoryPool, value);
   }
 
-  private static Configuration.PercentageThresholdConfiguration
+  private static PercentageThresholdConfiguration
         percentageThresholdConfiguration(final double usageThreshold) {
     return percentageThresholdConfiguration(JavaVirtualMachine.MemoryPoolType.HEAP, usageThreshold);
   }
 
-  private static Configuration.PercentageThresholdConfiguration
+  private static PercentageThresholdConfiguration
         percentageThresholdConfiguration(final JavaVirtualMachine.MemoryPoolType memoryPool,
                                          final double usageThreshold) {
-    return new Configuration.PercentageThresholdConfiguration(memoryPool, usageThreshold);
+    return new PercentageThresholdConfiguration(memoryPool, usageThreshold);
   }
 
   public static class BasicTest {
@@ -1025,8 +1029,8 @@ public class MBeanMonitorTest {
           return 365L;
         }
 
-        public Configuration.PercentageThresholdConfiguration getUsageThreshold() {
-          return new Configuration.PercentageThresholdConfiguration(
+        public PercentageThresholdConfiguration getUsageThreshold() {
+          return new PercentageThresholdConfiguration(
               JavaVirtualMachine.MemoryPoolType.HEAP, 50f);
         }
 

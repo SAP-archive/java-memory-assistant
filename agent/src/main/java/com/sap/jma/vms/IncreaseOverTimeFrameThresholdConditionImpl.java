@@ -6,7 +6,7 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.Configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
 import java.util.Deque;

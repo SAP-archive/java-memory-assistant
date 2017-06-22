@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class HeapDumpNameFormatter {
+public class HeapDumpNameFormatter {
 
   private static final Pattern PART_BEGIN_WITH_ESCAPED_PATTERN =
       Pattern.compile("^(?:%%)+[^%]*.*$");
@@ -50,7 +50,7 @@ class HeapDumpNameFormatter {
     });
   }
 
-  static void validate(final String pattern) throws IllegalArgumentException {
+  public static void validate(final String pattern) throws IllegalArgumentException {
     validateAndSplit(pattern);
   }
 

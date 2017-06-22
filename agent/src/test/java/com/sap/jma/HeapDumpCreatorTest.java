@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import com.sap.jma.configuration.Configuration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.testapi.TemporaryDefaultTimeZone;
 import java.io.File;
