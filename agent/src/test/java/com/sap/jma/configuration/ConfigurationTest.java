@@ -40,14 +40,14 @@ public class ConfigurationTest {
 
   private final Logger logger = mock(Logger.class);
 
-  private static Matcher<ThresholdConfiguration>
+  private static Matcher<UsageThresholdConfiguration>
         hasIncreaseOverTimeFrameValue(final double increase, final long timeFrameInMillis) {
-    return new BaseMatcher<ThresholdConfiguration>() {
+    return new BaseMatcher<UsageThresholdConfiguration>() {
       @Override
       public boolean matches(Object obj) {
         try {
-          final IncreaseOverTimeFrameThresholdConfiguration config =
-              (IncreaseOverTimeFrameThresholdConfiguration) obj;
+          final IncreaseOverTimeFrameUsageThresholdConfiguration config =
+              (IncreaseOverTimeFrameUsageThresholdConfiguration) obj;
 
           return increase == config.getDelta()
               && timeFrameInMillis == config.getTimeUnit().toMilliSeconds(config.getTimeFrame());
@@ -65,13 +65,13 @@ public class ConfigurationTest {
     };
   }
 
-  private static Matcher<ThresholdConfiguration>
+  private static Matcher<UsageThresholdConfiguration>
         hasPercentageValue(final double expected) {
-    return new BaseMatcher<ThresholdConfiguration>() {
+    return new BaseMatcher<UsageThresholdConfiguration>() {
       @Override
       public boolean matches(Object obj) {
-        return obj instanceof PercentageThresholdConfiguration
-            && ((PercentageThresholdConfiguration) obj).getValue() == expected;
+        return obj instanceof PercentageUsageThresholdConfiguration
+            && ((PercentageUsageThresholdConfiguration) obj).getValue() == expected;
       }
 
       @Override
@@ -327,8 +327,8 @@ public class ConfigurationTest {
 
     final Configuration configuration =
         Configuration.Builder.initializeFromSystemProperties(logger).build();
-    final IncreaseOverTimeFrameThresholdConfiguration config =
-        (IncreaseOverTimeFrameThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
+    final IncreaseOverTimeFrameUsageThresholdConfiguration config =
+        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
 
     assertThat(config.getDelta(), is(90d));
     assertThat(config.getTimeFrame(), is(3d));
@@ -343,8 +343,8 @@ public class ConfigurationTest {
 
     final Configuration configuration =
         Configuration.Builder.initializeFromSystemProperties(logger).build();
-    final IncreaseOverTimeFrameThresholdConfiguration config =
-        (IncreaseOverTimeFrameThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
+    final IncreaseOverTimeFrameUsageThresholdConfiguration config =
+        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
 
     assertThat(config.getDelta(), is(0.4));
     assertThat(config.getTimeFrame(), is(1d));

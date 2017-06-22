@@ -6,30 +6,30 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.AbsoluteThresholdConfiguration;
+import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Comparison;
 import com.sap.jma.configuration.MemorySizeUnit;
 import com.sap.jma.logging.Logger;
 
-public abstract class AbsoluteThresholdConditionImpl extends
-    AbstractUsageThresholdConditionImpl<AbsoluteThresholdConfiguration> {
+public abstract class AbsoluteUsageThresholdConditionImpl extends
+    AbstractUsageThresholdConditionImpl<AbsoluteUsageThresholdConfiguration> {
 
   // VisibleForTesting
   private final Logger logger;
 
-  public AbsoluteThresholdConditionImpl() {
-    this(Logger.Factory.get(JavaVirtualMachine.UsageThresholdCondition.class));
+  public AbsoluteUsageThresholdConditionImpl() {
+    this(Logger.Factory.get(UsageThresholdCondition.class));
   }
 
   //VisibleForTesting
-  AbsoluteThresholdConditionImpl(final Logger logger) {
+  AbsoluteUsageThresholdConditionImpl(final Logger logger) {
     this.logger = logger;
   }
 
   protected abstract double getCurrentUsageInBytes();
 
   public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
-    final AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
+    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdCondition();
     final double currentUsageInBytes = getCurrentUsageInBytes();
     final double targetUsageInBytes = usageThreshold.getTargetValueInBytes();
     final MemorySizeUnit memorySizeUnit = usageThreshold.getMemorySizeUnit();
@@ -73,7 +73,7 @@ public abstract class AbsoluteThresholdConditionImpl extends
 
   @Override
   public String toString() {
-    final AbsoluteThresholdConfiguration usageThreshold = getUsageThreshold();
+    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdCondition();
 
     final Comparison comparison = usageThreshold.getComparison();
     final String comparisonHumanReadable = toHumanReadable(comparison);

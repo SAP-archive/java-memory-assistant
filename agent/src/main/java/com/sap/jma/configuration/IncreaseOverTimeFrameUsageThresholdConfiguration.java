@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 /*
  * TODO Refactor to unify with ExecutionFrequency?
  */
-public class IncreaseOverTimeFrameThresholdConfiguration
-    implements ThresholdConfiguration {
+public class IncreaseOverTimeFrameUsageThresholdConfiguration
+    implements UsageThresholdConfiguration {
 
   private static final Pattern INCREASE_OVER_TIME_FRAME_PATTERN =
       Pattern.compile("\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)");
@@ -25,17 +25,17 @@ public class IncreaseOverTimeFrameThresholdConfiguration
   private final double timeFrame;
   private final IntervalTimeUnit timeUnit;
 
-  IncreaseOverTimeFrameThresholdConfiguration(final JavaVirtualMachine.MemoryPoolType memoryPool,
-                                              final double delta,
-                                              final double timeFrame,
-                                              final IntervalTimeUnit timeUnit) {
+  IncreaseOverTimeFrameUsageThresholdConfiguration(final JavaVirtualMachine.MemoryPoolType memoryPool,
+                                                   final double delta,
+                                                   final double timeFrame,
+                                                   final IntervalTimeUnit timeUnit) {
     this.memoryPool = memoryPool;
     this.delta = delta;
     this.timeFrame = timeFrame;
     this.timeUnit = timeUnit;
   }
 
-  public static IncreaseOverTimeFrameThresholdConfiguration parse(
+  public static IncreaseOverTimeFrameUsageThresholdConfiguration parse(
       final JavaVirtualMachine.MemoryPoolType memoryPool,
       final String value)
       throws InvalidPropertyValueException {
@@ -107,7 +107,7 @@ public class IncreaseOverTimeFrameThresholdConfiguration
               + values, timeFrameValue));
     }
 
-    return new IncreaseOverTimeFrameThresholdConfiguration(memoryPool, delta, timeFrameInt,
+    return new IncreaseOverTimeFrameUsageThresholdConfiguration(memoryPool, delta, timeFrameInt,
         timeFrameUnit);
   }
 

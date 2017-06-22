@@ -6,7 +6,7 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.IncreaseOverTimeFrameThresholdConfiguration;
+import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
 import java.util.Deque;
@@ -17,14 +17,14 @@ import java.util.LinkedList;
  * TODO How to take into account the Garbage collection?
  * The more GC, the WORSE violating this condition means
  */
-public abstract class IncreaseOverTimeFrameThresholdConditionImpl
-    extends AbstractUsageThresholdConditionImpl<IncreaseOverTimeFrameThresholdConfiguration> {
+public abstract class IncreaseOverTimeFrameUsageThresholdConditionImpl
+    extends AbstractUsageThresholdConditionImpl<IncreaseOverTimeFrameUsageThresholdConfiguration> {
 
   // VisibleForTesting
   final Deque<Measurement> measurements = new LinkedList<>();
 
-  private final IncreaseOverTimeFrameThresholdConfiguration usageThreshold
-      = getUsageThreshold();
+  private final IncreaseOverTimeFrameUsageThresholdConfiguration usageThreshold
+      = getUsageThresholdCondition();
 
   // VisibleForTesting
   final long measurementPeriod = usageThreshold.getTimeUnit()
@@ -33,12 +33,12 @@ public abstract class IncreaseOverTimeFrameThresholdConditionImpl
   // VisibleForTesting
   private final Logger logger;
 
-  public IncreaseOverTimeFrameThresholdConditionImpl() {
-    this(Logger.Factory.get(JavaVirtualMachine.UsageThresholdCondition.class));
+  public IncreaseOverTimeFrameUsageThresholdConditionImpl() {
+    this(Logger.Factory.get(UsageThresholdCondition.class));
   }
 
   //VisibleForTesting
-  IncreaseOverTimeFrameThresholdConditionImpl(final Logger logger) {
+  IncreaseOverTimeFrameUsageThresholdConditionImpl(final Logger logger) {
     this.logger = logger;
   }
 

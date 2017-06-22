@@ -7,7 +7,7 @@
 package com.sap.jma.vms;
 
 import com.sap.jma.configuration.Configuration;
-import com.sap.jma.configuration.ThresholdConfiguration;
+import com.sap.jma.configuration.UsageThresholdConfiguration;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,49 +96,49 @@ public interface JavaVirtualMachine {
   enum MemoryPoolType {
 
     HEAP("Heap") {
-      public ThresholdConfiguration getThreshold(final Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getHeapMemoryUsageThreshold();
       }
     },
 
     EDEN_SPACE("PS Eden Space") {
-      public ThresholdConfiguration getThreshold(final Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getEdenSpaceMemoryUsageThreshold();
       }
     },
 
     SURVIVOR_SPACE("PS Survivor Space") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getSurvivorSpaceMemoryUsageThreshold();
       }
     },
 
     OLD_GEN("PS Old Gen") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getOldGenSpaceMemoryUsageThreshold();
       }
     },
 
     COMPRESSED_CLASS_SPACE("Compressed Class Space") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getCompressedClassSpaceMemoryUsageThreshold();
       }
     },
 
     CODE_CACHE("Code Cache") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getCodeCacheMemoryUsageThreshold();
       }
     },
 
     METASPACE("Metaspace") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getMetaspaceMemoryUsageThreshold();
       }
     },
 
     PERM_GEN("PS Perm Gen") {
-      public ThresholdConfiguration getThreshold(Configuration configuration) {
+      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
         return configuration.getPermGenMemoryUsageThreshold();
       }
     };
@@ -153,7 +153,7 @@ public interface JavaVirtualMachine {
       return defaultName;
     }
 
-    abstract ThresholdConfiguration getThreshold(Configuration configuration);
+    abstract UsageThresholdConfiguration getThreshold(Configuration configuration);
 
   }
 
@@ -163,14 +163,6 @@ public interface JavaVirtualMachine {
 
     UsageThresholdCondition getUsageCondition(MemoryPoolMXBean memoryPoolBean,
                                               Configuration configuration);
-
-  }
-
-  interface UsageThresholdCondition<C extends ThresholdConfiguration> {
-
-    C getUsageThreshold();
-
-    void evaluate() throws UsageThresholdConditionViolatedException;
 
   }
 

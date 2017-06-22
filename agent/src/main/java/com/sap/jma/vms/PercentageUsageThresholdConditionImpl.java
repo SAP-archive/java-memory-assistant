@@ -6,17 +6,17 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.PercentageThresholdConfiguration;
+import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 
-public abstract class PercentageThresholdConditionImpl
-    extends AbstractUsageThresholdConditionImpl<PercentageThresholdConfiguration> {
+public abstract class PercentageUsageThresholdConditionImpl
+    extends AbstractUsageThresholdConditionImpl<PercentageUsageThresholdConfiguration> {
 
   private static final Logger LOGGER =
-      Logger.Factory.get(JavaVirtualMachine.UsageThresholdCondition.class);
+      Logger.Factory.get(UsageThresholdCondition.class);
 
-  private final PercentageThresholdConfiguration usageThreshold =
-      getUsageThreshold();
+  private final PercentageUsageThresholdConfiguration usageThreshold =
+      getUsageThresholdCondition();
 
   protected abstract long getMemoryUsed();
 
