@@ -48,10 +48,6 @@ fabric.properties
 
 # Gradle
 
-gradle
-gradlew
-gradlew.bat
-
 .gradle
 build/
 
