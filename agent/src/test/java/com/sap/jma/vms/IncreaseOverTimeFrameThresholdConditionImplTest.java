@@ -19,6 +19,7 @@ import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguratio
 import com.sap.jma.configuration.IntervalTimeUnit;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
+import java.lang.management.MemoryUsage;
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -34,7 +35,9 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
   private final Clock clock = mock(Clock.class);
 
-  private final MemoryPoolMock memoryPool = mock(MemoryPoolMock.class);
+  private final MemoryPool memoryPool = mock(MemoryPool.class);
+
+  private final MemoryUsage memoryUsage = mock(MemoryUsage.class);
 
   private final Logger logger = mock(Logger.class);
 
@@ -43,8 +46,8 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     return new TypeSafeMatcher<IncreaseOverTimeFrameUsageThresholdConditionImpl>() {
       @Override
       protected boolean matchesSafely(
-          IncreaseOverTimeFrameUsageThresholdConditionImpl increaseOverTimeFrameThresholdCondition) {
-        return millis == increaseOverTimeFrameThresholdCondition.measurementPeriod;
+          IncreaseOverTimeFrameUsageThresholdConditionImpl condition) {
+        return millis == condition.measurementPeriod;
       }
 
       @Override
@@ -57,6 +60,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
   @Before
   public void setup() {
     doReturn("TestPool").when(memoryPool).getName();
+    doReturn(memoryUsage).when(memoryPool).getMemoryUsage();
   }
 
   @Test
@@ -72,8 +76,8 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
   @Test
   public void testMeasurementPointAccumulationWithImmediateViolation() throws Exception {
     when(clock.getMillis()).thenReturn(400L, 1500L, 3400L);
-    doReturn(100L).when(memoryPool).getMemoryMax();
-    when(memoryPool.getMemoryUsed()).thenReturn(10L, 50L);
+    doReturn(100L).when(memoryUsage).getMax();
+    when(memoryUsage.getUsed()).thenReturn(10L, 50L);
 
     final IncreaseOverTimeFrameUsageThresholdConditionImpl condition =
         createCondition(20d, 3d, TimeUnit.SECONDS);
@@ -112,8 +116,8 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
   @Test
   public void testMeasurementPointAccumulationWithoutViolation() throws Exception {
-    doReturn(100L).when(memoryPool).getMemoryMax();
-    when(memoryPool.getMemoryUsed()).thenReturn(10L, 5L, 24L, 23L);
+    doReturn(100L).when(memoryUsage).getMax();
+    when(memoryUsage.getUsed()).thenReturn(10L, 5L, 24L, 23L);
     when(clock.getMillis()).thenReturn(400L, 1901L, 3402L, 5002L);
 
     final IncreaseOverTimeFrameUsageThresholdConditionImpl condition =
@@ -182,49 +186,18 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
   private IncreaseOverTimeFrameUsageThresholdConditionImpl
       createCondition(final double delta, final double period,
-                      final TimeUnit timeUnit, final MemoryPoolMock memoryPool)
+                      final TimeUnit timeUnit, final MemoryPool memoryPool)
       throws Exception {
     final IncreaseOverTimeFrameUsageThresholdConfiguration configuration =
         IncreaseOverTimeFrameUsageThresholdConfiguration.parse(memoryPool.getType(),
             "+" + String.valueOf(delta) + "%/" + String.valueOf(period)
             + IntervalTimeUnit.from(timeUnit).getLiteral());
-    return new IncreaseOverTimeFrameUsageThresholdConditionImpl(logger) {
-
+    return new IncreaseOverTimeFrameUsageThresholdConditionImpl(configuration, memoryPool, logger) {
       @Override
       protected Clock getClock() {
         return clock;
       }
-
-      @Override
-      protected String getMemoryPoolName() {
-        return memoryPool.getName();
-      }
-
-      @Override
-      protected long getMemoryUsed() {
-        return memoryPool.getMemoryUsed();
-      }
-
-      @Override
-      protected long getMemoryMax() {
-        return memoryPool.getMemoryMax();
-      }
-
-      @Override
-      public IncreaseOverTimeFrameUsageThresholdConfiguration getUsageThresholdCondition() {
-        return configuration;
-      }
     };
-  }
-
-  private interface MemoryPoolMock {
-    JavaVirtualMachine.MemoryPoolType getType();
-
-    String getName();
-
-    long getMemoryUsed();
-
-    long getMemoryMax();
   }
 
 }

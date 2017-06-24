@@ -9,28 +9,20 @@ package com.sap.jma.vms;
 import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Comparison;
 import com.sap.jma.configuration.MemorySizeUnit;
-import com.sap.jma.logging.Logger;
 
-public abstract class AbsoluteUsageThresholdConditionImpl extends
+public class AbsoluteUsageThresholdConditionImpl extends
     AbstractUsageThresholdConditionImpl<AbsoluteUsageThresholdConfiguration> {
 
-  // VisibleForTesting
-  private final Logger logger;
-
-  public AbsoluteUsageThresholdConditionImpl() {
-    this(Logger.Factory.get(UsageThresholdCondition.class));
-  }
-
   //VisibleForTesting
-  AbsoluteUsageThresholdConditionImpl(final Logger logger) {
-    this.logger = logger;
+  public AbsoluteUsageThresholdConditionImpl(
+      final AbsoluteUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool) {
+    super(configuration, memoryPool);
   }
-
-  protected abstract double getCurrentUsageInBytes();
 
   public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
-    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdCondition();
-    final double currentUsageInBytes = getCurrentUsageInBytes();
+    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdConfiguration();
+    final double currentUsageInBytes = memoryPool.getMemoryUsage().getUsed();
     final double targetUsageInBytes = usageThreshold.getTargetValueInBytes();
     final MemorySizeUnit memorySizeUnit = usageThreshold.getMemorySizeUnit();
     final Comparison comparison = usageThreshold.getComparison();
@@ -73,7 +65,7 @@ public abstract class AbsoluteUsageThresholdConditionImpl extends
 
   @Override
   public String toString() {
-    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdCondition();
+    final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdConfiguration();
 
     final Comparison comparison = usageThreshold.getComparison();
     final String comparisonHumanReadable = toHumanReadable(comparison);

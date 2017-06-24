@@ -6,7 +6,9 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
+import com.sap.jma.vms.MemoryPool.Type;
+import com.sap.jma.vms.MemoryPool;
+import com.sap.jma.vms.PercentageUsageThresholdConditionImpl;
 import com.sap.jma.vms.UsageThresholdCondition;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
@@ -15,15 +17,8 @@ import java.util.regex.Pattern;
 public class PercentageUsageThresholdConfiguration implements UsageThresholdConfiguration {
 
   private static final Pattern PERCENTAGE_PATTERN = Pattern.compile("(\\d*\\.?\\d*\\d)%");
-  private final double value;
-  private final MemoryPoolType memoryPool;
 
-  public PercentageUsageThresholdConfiguration(final MemoryPoolType memoryPool, final double value) {
-    this.memoryPool = memoryPool;
-    this.value = value;
-  }
-
-  public static PercentageUsageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
+  public static PercentageUsageThresholdConfiguration parse(final Type memoryPoolType,
                                                             final String value)
       throws InvalidPropertyValueException {
     final Matcher matcher = PERCENTAGE_PATTERN.matcher(value);
@@ -58,13 +53,28 @@ public class PercentageUsageThresholdConfiguration implements UsageThresholdConf
     return new PercentageUsageThresholdConfiguration(memoryPoolType, f);
   }
 
+  private final double value;
+  private final Type memoryPool;
+
+  public PercentageUsageThresholdConfiguration(final Type memoryPool,
+                                               final double value) {
+    this.memoryPool = memoryPool;
+    this.value = value;
+  }
+
   @Override
-  public MemoryPoolType getMemoryPool() {
+  public Type getMemoryPoolType() {
     return memoryPool;
   }
 
   public double getValue() {
     return value;
+  }
+
+  @Override
+  public UsageThresholdCondition<PercentageUsageThresholdConfiguration> toCondition(
+      final MemoryPool memoryPool) {
+    return new PercentageUsageThresholdConditionImpl(this, memoryPool);
   }
 
 }

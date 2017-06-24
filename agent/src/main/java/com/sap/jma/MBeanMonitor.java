@@ -8,16 +8,11 @@ package com.sap.jma;
 
 import static com.sap.jma.concurrent.ThreadFactories.deamons;
 
-import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Configuration;
-import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
-import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.configuration.UsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
-import com.sap.jma.vms.AbsoluteUsageThresholdConditionImpl;
-import com.sap.jma.vms.IncreaseOverTimeFrameUsageThresholdConditionImpl;
 import com.sap.jma.vms.JavaVirtualMachine;
-import com.sap.jma.vms.PercentageUsageThresholdConditionImpl;
+import com.sap.jma.vms.MemoryPool;
 import com.sap.jma.vms.UsageThresholdCondition;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -33,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 class MBeanMonitor extends Monitor {
 
-  private final List<UsageThresholdCondition> memoryPoolsConditions =
+  private final List<UsageThresholdCondition> memoryPoolConditions =
       new ArrayList<>();
 
   private final Callable<ScheduledExecutorService> executorServiceProvider;
@@ -62,86 +57,12 @@ class MBeanMonitor extends Monitor {
 
     final JavaVirtualMachine jvm = findCurrentJvm();
 
-    final UsageThresholdConfiguration config = configuration.getHeapMemoryUsageThreshold();
-    final UsageThresholdCondition condition;
-    if (config == null) {
-      condition = null;
-    } else if (config instanceof AbsoluteUsageThresholdConfiguration) {
-      final MemoryMXBean memoryBean = getMemoryMxBean();
-      condition = new AbsoluteUsageThresholdConditionImpl() {
-        @Override
-        protected String getMemoryPoolName() {
-          return "Heap";
-        }
+    final UsageThresholdConfiguration heapConfiguration =
+        configuration.getHeapMemoryUsageThreshold();
 
-        @Override
-        protected double getCurrentUsageInBytes() {
-          return memoryBean.getHeapMemoryUsage().getUsed();
-        }
-
-        @Override
-        public AbsoluteUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (AbsoluteUsageThresholdConfiguration) config;
-        }
-      };
-    } else if (config instanceof IncreaseOverTimeFrameUsageThresholdConfiguration) {
-      final MemoryMXBean memoryBean = getMemoryMxBean();
-      condition = new IncreaseOverTimeFrameUsageThresholdConditionImpl() {
-        @Override
-        protected String getMemoryPoolName() {
-          return "Heap";
-        }
-
-        @Override
-        protected long getMemoryUsed() {
-          return memoryBean.getHeapMemoryUsage().getUsed();
-        }
-
-        @Override
-        protected long getMemoryMax() {
-          return memoryBean.getHeapMemoryUsage().getMax();
-        }
-
-        @Override
-        public IncreaseOverTimeFrameUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (IncreaseOverTimeFrameUsageThresholdConfiguration) config;
-        }
-      };
-    } else if (config instanceof PercentageUsageThresholdConfiguration) {
-      final MemoryMXBean memoryBean = getMemoryMxBean();
-      condition = new PercentageUsageThresholdConditionImpl() {
-        @Override
-        protected String getMemoryPoolName() {
-          return "Heap";
-        }
-
-        @Override
-        protected long getMemoryUsed() {
-          return memoryBean.getHeapMemoryUsage().getUsed();
-        }
-
-        @Override
-        protected long getMemoryMax() {
-          return memoryBean.getHeapMemoryUsage().getMax();
-        }
-
-        @Override
-        public PercentageUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (PercentageUsageThresholdConfiguration) config;
-        }
-
-        @Override
-        public String toString() {
-          return configuration.getHeapMemoryUsageThreshold().toString();
-        }
-      };
-    } else {
-      throw new IllegalStateException("Unsupported threshold configuration type: "
-          + configuration.getClass().getName());
-    }
-
-    if (condition != null) {
-      memoryPoolsConditions.add(condition);
+    if (heapConfiguration != null) {
+      memoryPoolConditions.add(heapConfiguration.toCondition(
+          jvm.getHeapMemoryPool(getMemoryMxBean())));
     }
 
     final List<MemoryPoolMXBean> memoryPoolMxBeans = getMemoryPoolMxBeans();
@@ -149,24 +70,23 @@ class MBeanMonitor extends Monitor {
       final String poolName = poolBean.getName();
       logger.debug(String.format("Memory pool found: %s", poolName));
 
-      final JavaVirtualMachine.MemoryPool memoryPool = jvm.findMemoryPool(poolBean);
-      final UsageThresholdCondition memoryPoolCondition =
-          memoryPool.getUsageCondition(poolBean, configuration);
+      final MemoryPool memoryPool = jvm.getMemoryPool(poolBean);
+      final UsageThresholdCondition memoryPoolCondition = memoryPool.toCondition(configuration);
 
       if (memoryPoolCondition != null) {
-        memoryPoolsConditions.add(memoryPoolCondition);
+        memoryPoolConditions.add(memoryPoolCondition);
       }
     }
 
-    if (memoryPoolsConditions.isEmpty()) {
+    if (memoryPoolConditions.isEmpty()) {
       logger.warning("No memory conditions have been specified; "
           + "the heap-dump agent will not perform checks");
       return;
     }
 
-    final String memoryConditionsMessage = (memoryPoolsConditions.size() == 1)
+    final String memoryConditionsMessage = (memoryPoolConditions.size() == 1)
         ? "One memory condition has been specified"
-        : String.format("%d memory conditions have been specified", memoryPoolsConditions.size());
+        : String.format("%d memory conditions have been specified", memoryPoolConditions.size());
 
     if (configuration.getCheckIntervalInMillis() < 0) {
       logger.error(memoryConditionsMessage
@@ -175,7 +95,7 @@ class MBeanMonitor extends Monitor {
     } else {
       final StringBuilder conditions = new StringBuilder();
       for (final UsageThresholdCondition memoryPoolCondition :
-          memoryPoolsConditions) {
+          memoryPoolConditions) {
         conditions.append('\n');
         conditions.append('*');
         conditions.append(' ');
@@ -237,7 +157,7 @@ class MBeanMonitor extends Monitor {
   // VisibleForTesting
   void runChecks() {
     final List<String> reasons = new LinkedList<>();
-    for (final UsageThresholdCondition condition : memoryPoolsConditions) {
+    for (final UsageThresholdCondition condition : memoryPoolConditions) {
       try {
         condition.evaluate();
       } catch (JavaVirtualMachine.UsageThresholdConditionViolatedException ex) {

@@ -9,6 +9,7 @@ package com.sap.jma.vms;
 import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
+import java.lang.management.MemoryUsage;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -17,28 +18,31 @@ import java.util.LinkedList;
  * TODO How to take into account the Garbage collection?
  * The more GC, the WORSE violating this condition means
  */
-public abstract class IncreaseOverTimeFrameUsageThresholdConditionImpl
+public class IncreaseOverTimeFrameUsageThresholdConditionImpl
     extends AbstractUsageThresholdConditionImpl<IncreaseOverTimeFrameUsageThresholdConfiguration> {
 
   // VisibleForTesting
   final Deque<Measurement> measurements = new LinkedList<>();
 
-  private final IncreaseOverTimeFrameUsageThresholdConfiguration usageThreshold
-      = getUsageThresholdCondition();
-
   // VisibleForTesting
-  final long measurementPeriod = usageThreshold.getTimeUnit()
-      .toMilliSeconds(usageThreshold.getTimeFrame()) / 2;
+  final long measurementPeriod = getUsageThresholdConfiguration().getTimeUnit()
+      .toMilliSeconds(getUsageThresholdConfiguration().getTimeFrame()) / 2;
 
-  // VisibleForTesting
   private final Logger logger;
 
-  public IncreaseOverTimeFrameUsageThresholdConditionImpl() {
-    this(Logger.Factory.get(UsageThresholdCondition.class));
+  public IncreaseOverTimeFrameUsageThresholdConditionImpl(
+      final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool) {
+    this(configuration, memoryPool,
+        Logger.Factory.get(IncreaseOverTimeFrameUsageThresholdConditionImpl.class));
   }
 
   //VisibleForTesting
-  IncreaseOverTimeFrameUsageThresholdConditionImpl(final Logger logger) {
+  IncreaseOverTimeFrameUsageThresholdConditionImpl(
+      final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool,
+      final Logger logger) {
+    super(configuration, memoryPool);
     this.logger = logger;
   }
 
@@ -47,12 +51,9 @@ public abstract class IncreaseOverTimeFrameUsageThresholdConditionImpl
     return Clock.SYSTEM;
   }
 
-  protected abstract long getMemoryUsed();
-
-  protected abstract long getMemoryMax();
-
   private double getCurrentUsageRatio() {
-    return getMemoryUsed() * 100d / getMemoryMax();
+    final MemoryUsage memoryUsage = memoryPool.getMemoryUsage();
+    return memoryUsage.getUsed() * 100d / memoryUsage.getMax();
   }
 
   @Override
@@ -95,6 +96,8 @@ public abstract class IncreaseOverTimeFrameUsageThresholdConditionImpl
       return;
     }
 
+    final IncreaseOverTimeFrameUsageThresholdConfiguration usageThreshold =
+        getUsageThresholdConfiguration();
     final Measurement first = measurements.getFirst();
     final double actualIncrease = last.getUsage() - first.getUsage();
     final long actualTimeFrameInMillis = last.getTimestamp() - first.getTimestamp();
@@ -103,21 +106,22 @@ public abstract class IncreaseOverTimeFrameUsageThresholdConditionImpl
       throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
           String.format("Memory pool '%s' at %s%% usage, increased from %s%% by more "
                   + "than maximum %s%% increase (actual increase: %s%%) over the last %s%s",
-              getMemoryPoolName(),
-              DECIMAL_FORMAT.format(last.getUsage()),
-              DECIMAL_FORMAT.format(first.getUsage()),
-              DECIMAL_FORMAT.format(usageThreshold.getDelta()),
-              DECIMAL_FORMAT.format(actualIncrease),
-              usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis),
+              getMemoryPoolName(), //
+              DECIMAL_FORMAT.format(last.getUsage()), //
+              DECIMAL_FORMAT.format(first.getUsage()), //
+              DECIMAL_FORMAT.format(usageThreshold.getDelta()), //
+              DECIMAL_FORMAT.format(actualIncrease), //
+              usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis), //
               usageThreshold.getTimeUnit().getLiteral()));
     } else {
       logger.debug(String.format("Memory pool '%s' at %s%% usage, changed from %s%% by less "
               + "than maximum %s%% increase (actual increase: %s%%) over the last %s%s",
-          getMemoryPoolName(), DECIMAL_FORMAT.format(last.getUsage()),
-          DECIMAL_FORMAT.format(first.getUsage()),
-          DECIMAL_FORMAT.format(usageThreshold.getDelta()),
-          DECIMAL_FORMAT.format(actualIncrease),
-          usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis),
+          getMemoryPoolName(), //
+          DECIMAL_FORMAT.format(last.getUsage()), //
+          DECIMAL_FORMAT.format(first.getUsage()), //
+          DECIMAL_FORMAT.format(usageThreshold.getDelta()), //
+          DECIMAL_FORMAT.format(actualIncrease), //
+          usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis), //
           usageThreshold.getTimeUnit().getLiteral()));
     }
   }

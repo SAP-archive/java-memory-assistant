@@ -17,8 +17,21 @@ abstract class AbstractUsageThresholdConditionImpl<C extends UsageThresholdConfi
   static final DecimalFormat DECIMAL_FORMAT =
       new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US));
 
-  protected abstract String getMemoryPoolName();
+  private final C configuration;
+  protected final MemoryPool memoryPool;
 
-  public abstract C getUsageThresholdCondition();
+  protected AbstractUsageThresholdConditionImpl(final C configuration,
+                                                final MemoryPool memoryPool) {
+    this.configuration = configuration;
+    this.memoryPool = memoryPool;
+  }
+
+  protected final String getMemoryPoolName() {
+    return memoryPool.getName();
+  }
+
+  public final C getUsageThresholdConfiguration() {
+    return configuration;
+  }
 
 }

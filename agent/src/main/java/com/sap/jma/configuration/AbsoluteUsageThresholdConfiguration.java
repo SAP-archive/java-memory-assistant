@@ -6,7 +6,10 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
+import com.sap.jma.vms.AbsoluteUsageThresholdConditionImpl;
+import com.sap.jma.vms.MemoryPool.Type;
+import com.sap.jma.vms.MemoryPool;
+import com.sap.jma.vms.UsageThresholdCondition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,7 +18,7 @@ public class AbsoluteUsageThresholdConfiguration implements UsageThresholdConfig
   private static final Pattern ABSOLUTE_PATTERN =
       Pattern.compile("([<=>]+)(\\d*\\.?\\d*\\d)([KMG]?B)");
 
-  public static AbsoluteUsageThresholdConfiguration parse(final MemoryPoolType memoryPoolType,
+  public static AbsoluteUsageThresholdConfiguration parse(final Type memoryPoolType,
                                                           final String value)
       throws InvalidPropertyValueException {
     final Matcher matcher = ABSOLUTE_PATTERN.matcher(value);
@@ -39,17 +42,17 @@ public class AbsoluteUsageThresholdConfiguration implements UsageThresholdConfig
     }
   }
 
-  private final MemoryPoolType memoryPool;
+  private final Type memoryPool;
   private final Comparison comparison;
   private final double targetValueInBytes;
   private final MemorySizeUnit memorySizeUnit;
   private final String configurationValue;
 
-  AbsoluteUsageThresholdConfiguration(final MemoryPoolType memoryPool,
-                                      final Comparison comparison,
-                                      final double targetValueInBytes,
-                                      final MemorySizeUnit memorySizeUnit,
-                                      final String configurationValue) {
+  private AbsoluteUsageThresholdConfiguration(final Type memoryPool,
+                                              final Comparison comparison,
+                                              final double targetValueInBytes,
+                                              final MemorySizeUnit memorySizeUnit,
+                                              final String configurationValue) {
     this.memoryPool = memoryPool;
     this.comparison = comparison;
     this.targetValueInBytes = targetValueInBytes;
@@ -70,8 +73,14 @@ public class AbsoluteUsageThresholdConfiguration implements UsageThresholdConfig
   }
 
   @Override
-  public MemoryPoolType getMemoryPool() {
+  public Type getMemoryPoolType() {
     return memoryPool;
+  }
+
+  @Override
+  public UsageThresholdCondition<AbsoluteUsageThresholdConfiguration> toCondition(
+      final MemoryPool memoryPool) {
+    return new AbsoluteUsageThresholdConditionImpl(this, memoryPool);
   }
 
   @Override

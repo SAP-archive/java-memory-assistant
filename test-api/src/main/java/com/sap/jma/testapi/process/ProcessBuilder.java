@@ -74,10 +74,8 @@ public class ProcessBuilder {
   public Process buildAndRunUntil(final ProcessCondition processCondition,
                                   final boolean killAfterConditionMet) throws Exception {
     final Process process = build();
-    boolean success = false;
     try {
       processCondition.run(process);
-      success = true;
       return process;
     } catch (InterruptedException ex) {
       System.out.println(String.format("Process condition '%s' interrupted", processCondition));
@@ -85,12 +83,10 @@ public class ProcessBuilder {
     } finally {
       if (killAfterConditionMet) {
         process.shutdown();
-
-        if (!success) {
-          System.out.println("Process output:\n" + process.getOut());
-          System.out.println("Process error:\n" + process.getErr());
-        }
       }
+
+      System.out.println("Process output:\n" + process.getOut());
+      System.out.println("Process error:\n" + process.getErr());
     }
   }
 
