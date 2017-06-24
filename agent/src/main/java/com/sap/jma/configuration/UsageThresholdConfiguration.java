@@ -6,10 +6,13 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine;
+import com.sap.jma.vms.MemoryPool;
+import com.sap.jma.vms.UsageThresholdCondition;
 
 public interface UsageThresholdConfiguration {
 
-  JavaVirtualMachine.MemoryPoolType getMemoryPool();
+  MemoryPool.Type getMemoryPoolType();
+
+  UsageThresholdCondition<?> toCondition(final MemoryPool memoryPool);
 
 }

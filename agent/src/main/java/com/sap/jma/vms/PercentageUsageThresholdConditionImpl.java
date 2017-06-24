@@ -8,28 +8,29 @@ package com.sap.jma.vms;
 
 import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
+import java.lang.management.MemoryUsage;
 
-public abstract class PercentageUsageThresholdConditionImpl
+public class PercentageUsageThresholdConditionImpl
     extends AbstractUsageThresholdConditionImpl<PercentageUsageThresholdConfiguration> {
 
   private static final Logger LOGGER =
       Logger.Factory.get(UsageThresholdCondition.class);
 
-  private final PercentageUsageThresholdConfiguration usageThreshold =
-      getUsageThresholdCondition();
-
-  protected abstract long getMemoryUsed();
-
-  protected abstract long getMemoryMax();
+  public PercentageUsageThresholdConditionImpl(
+      final PercentageUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool) {
+    super(configuration, memoryPool);
+  }
 
   private double getCurrentUsageRatio() {
-    return getMemoryUsed() * 100d / getMemoryMax();
+    final MemoryUsage memoryUsage = memoryPool.getMemoryUsage();
+    return memoryUsage.getUsed() * 100d / memoryUsage.getMax();
   }
 
   public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
     final double usageRatio = getCurrentUsageRatio();
 
-    if (usageThreshold.getValue() < usageRatio) {
+    if (getUsageThresholdConfiguration().getValue() < usageRatio) {
       throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
           getDescription(usageRatio));
     } else {
@@ -40,13 +41,13 @@ public abstract class PercentageUsageThresholdConditionImpl
   private String getDescription(double usageRatio) {
     return String.format("Memory pool '%s' at %s%% usage, configured threshold is %s%%",
         getMemoryPoolName(), DECIMAL_FORMAT.format(usageRatio),
-        DECIMAL_FORMAT.format(usageThreshold.getValue()));
+        DECIMAL_FORMAT.format(getUsageThresholdConfiguration().getValue()));
   }
 
   @Override
   public String toString() {
     return String.format("Memory pool '%s' used to %s%% or more", getMemoryPoolName(),
-        DECIMAL_FORMAT.format(usageThreshold.getValue()));
+        DECIMAL_FORMAT.format(getUsageThresholdConfiguration().getValue()));
   }
 
 }

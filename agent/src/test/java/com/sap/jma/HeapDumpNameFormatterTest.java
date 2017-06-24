@@ -282,6 +282,21 @@ public class HeapDumpNameFormatterTest {
   }
 
   @Test
+  public void testNamePatternEnvironmentWithLiterals() {
+    environmentVariables.set("CF_INSTANCE_INDEX", "42");
+    environmentVariables.set("CF_INSTANCE_GUID", "0987654321");
+
+    HeapDumpNameFormatter.validate("%env:CF_INSTANCE_INDEX%-%ts:yyyy-MM-dd'T'mm':'ss':'SSSZ%-"
+        + "%env:CF_INSTANCE_GUID[,8]%.hprof");
+
+    final HeapDumpNameFormatter subject =
+        new HeapDumpNameFormatter("%env:CF_INSTANCE_INDEX%-%ts:yyyy-MM-dd'T'mm':'ss':'SSSZ%-"
+            + "%env:CF_INSTANCE_GUID[,8]%.hprof", "my_host", uuidProvider);
+
+    assertThat(subject.format(date), is("42-1970-01-01T00:00:000+0000-09876543.hprof"));
+  }
+
+  @Test
   public void testNamePatternEnvironmentPropertyNotSet() {
     assertThat(System.getenv("my_prop"), nullValue());
 

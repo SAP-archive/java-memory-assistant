@@ -6,7 +6,10 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.JavaVirtualMachine;
+import com.sap.jma.vms.IncreaseOverTimeFrameUsageThresholdConditionImpl;
+import com.sap.jma.vms.MemoryPool.Type;
+import com.sap.jma.vms.MemoryPool;
+import com.sap.jma.vms.UsageThresholdCondition;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,23 +23,8 @@ public class IncreaseOverTimeFrameUsageThresholdConfiguration
   private static final Pattern INCREASE_OVER_TIME_FRAME_PATTERN =
       Pattern.compile("\\+(\\d*\\.?\\d*\\d)%/(\\d*\\.?\\d*\\d)(ms|s|m|h)");
 
-  private final JavaVirtualMachine.MemoryPoolType memoryPool;
-  private final double delta;
-  private final double timeFrame;
-  private final IntervalTimeUnit timeUnit;
-
-  IncreaseOverTimeFrameUsageThresholdConfiguration(final JavaVirtualMachine.MemoryPoolType memoryPool,
-                                                   final double delta,
-                                                   final double timeFrame,
-                                                   final IntervalTimeUnit timeUnit) {
-    this.memoryPool = memoryPool;
-    this.delta = delta;
-    this.timeFrame = timeFrame;
-    this.timeUnit = timeUnit;
-  }
-
   public static IncreaseOverTimeFrameUsageThresholdConfiguration parse(
-      final JavaVirtualMachine.MemoryPoolType memoryPool,
+      final Type memoryPool,
       final String value)
       throws InvalidPropertyValueException {
     final Matcher matcher = INCREASE_OVER_TIME_FRAME_PATTERN.matcher(value);
@@ -111,8 +99,23 @@ public class IncreaseOverTimeFrameUsageThresholdConfiguration
         timeFrameUnit);
   }
 
+  private final Type memoryPool;
+  private final double delta;
+  private final double timeFrame;
+  private final IntervalTimeUnit timeUnit;
+
+  private IncreaseOverTimeFrameUsageThresholdConfiguration(final Type memoryPool,
+                                                           final double delta,
+                                                           final double timeFrame,
+                                                           final IntervalTimeUnit timeUnit) {
+    this.memoryPool = memoryPool;
+    this.delta = delta;
+    this.timeFrame = timeFrame;
+    this.timeUnit = timeUnit;
+  }
+
   @Override
-  public JavaVirtualMachine.MemoryPoolType getMemoryPool() {
+  public Type getMemoryPoolType() {
     return memoryPool;
   }
 
@@ -127,4 +130,11 @@ public class IncreaseOverTimeFrameUsageThresholdConfiguration
   public IntervalTimeUnit getTimeUnit() {
     return timeUnit;
   }
+
+  @Override
+  public UsageThresholdCondition<IncreaseOverTimeFrameUsageThresholdConfiguration> toCondition(
+      final MemoryPool memoryPool) {
+    return new IncreaseOverTimeFrameUsageThresholdConditionImpl(this, memoryPool);
+  }
+
 }

@@ -6,61 +6,65 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.Configuration;
-import com.sap.jma.configuration.UsageThresholdConfiguration;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+
+import com.sap.jma.utils.Supplier;
+import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
-import java.util.Arrays;
-import java.util.Collections;
+import java.lang.management.MemoryUsage;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public interface JavaVirtualMachine {
 
-  MemoryPool findMemoryPool(final MemoryPoolMXBean memoryPoolBean);
+  MemoryPool getMemoryPool(MemoryPoolMXBean memoryPoolBean);
+
+  MemoryPool getHeapMemoryPool(final MemoryMXBean memoryBean);
 
   enum Supported implements JavaVirtualMachine {
 
     ORACLE_7_X("Oracle Corporation", "1.7", // This also works for OpenJDK 7.x
-        MemoryPoolImpl.from(MemoryPoolType.EDEN_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.SURVIVOR_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.OLD_GEN), //
-        MemoryPoolImpl.from(MemoryPoolType.CODE_CACHE), //
-        MemoryPoolImpl.from(MemoryPoolType.PERM_GEN)),
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.PERM_GEN),
 
     ORACLE_8_X("Oracle Corporation", "1.8", // This also works for OpenJDK 8.x
-        MemoryPoolImpl.from(MemoryPoolType.EDEN_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.SURVIVOR_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.OLD_GEN), //
-        MemoryPoolImpl.from(MemoryPoolType.CODE_CACHE), //
-        MemoryPoolImpl.from(MemoryPoolType.COMPRESSED_CLASS_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.METASPACE)),
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE),
 
     SAP_7_X("SAP AG", "1.7", //
-        MemoryPoolImpl.from(MemoryPoolType.EDEN_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.SURVIVOR_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.OLD_GEN), //
-        MemoryPoolImpl.from(MemoryPoolType.CODE_CACHE), //
-        MemoryPoolImpl.from(MemoryPoolType.COMPRESSED_CLASS_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.METASPACE)),
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE),
 
     SAP_8_X("SAP AG", "1.8", //
-        MemoryPoolImpl.from(MemoryPoolType.EDEN_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.SURVIVOR_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.OLD_GEN), //
-        MemoryPoolImpl.from(MemoryPoolType.CODE_CACHE), //
-        MemoryPoolImpl.from(MemoryPoolType.COMPRESSED_CLASS_SPACE), //
-        MemoryPoolImpl.from(MemoryPoolType.METASPACE));
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE);
 
     private final String vendor;
 
     private final String specVersion;
 
-    private final List<MemoryPool> memoryPools;
+    private final List<MemoryPool.Type> supportedMemoryPoolTypes;
 
-    Supported(final String vendor, final String specVersion, final MemoryPool... memoryPools) {
+    Supported(final String vendor, final String specVersion,
+              final MemoryPool.Type... supportedMemoryPoolTypes) {
       this.vendor = vendor;
       this.specVersion = specVersion;
-      this.memoryPools = Collections.unmodifiableList(Arrays.asList(memoryPools));
+      this.supportedMemoryPoolTypes = unmodifiableList(asList(supportedMemoryPoolTypes));
     }
 
     public static JavaVirtualMachine find(final String vendor, final String specVersion)
@@ -74,95 +78,45 @@ public interface JavaVirtualMachine {
       throw new UnsupportedJavaVirtualMachineException(vendor, specVersion);
     }
 
-    public MemoryPool findMemoryPool(final MemoryPoolMXBean memoryPoolBean) {
-      for (final MemoryPool memoryPool : memoryPools) {
-        if (memoryPool.matches(memoryPoolBean)) {
-          return memoryPool;
+    public List<MemoryPool.Type> getSupportedMemoryPoolTypes() {
+      return supportedMemoryPoolTypes;
+    }
+
+    @Override
+    public MemoryPool getHeapMemoryPool(final MemoryMXBean memoryBean) {
+      return new MemoryPoolImpl(MemoryPool.Type.HEAP, new Supplier<MemoryUsage>() {
+        @Override
+        public MemoryUsage get() {
+          return memoryBean.getHeapMemoryUsage();
+        }
+      });
+    }
+
+    @Override
+    public MemoryPool getMemoryPool(final MemoryPoolMXBean memoryPoolBean) {
+      final MemoryPool.Type type = MemoryPool.Type.from(memoryPoolBean);
+
+      boolean found = false;
+      for (final MemoryPool.Type supportedType : getSupportedMemoryPoolTypes()) {
+        if (type == supportedType) {
+          found = true;
+          break;
         }
       }
 
-      throw new NoSuchElementException(
-          String.format("The memory pool '%s' is not known for the '%s' JVM",
-          memoryPoolBean.getName(),
-          name()));
+      if (!found) {
+        throw new IllegalStateException(
+            String.format("The memory pool type '%s' is not supported on the JVM type '%s'",
+                type, this));
+      }
+
+      return new MemoryPoolImpl(type, new Supplier<MemoryUsage>() {
+        @Override
+        public MemoryUsage get() {
+          return memoryPoolBean.getUsage();
+        }
+      });
     }
-
-  }
-
-  /*
-   * List of known memory pools found in the various versions of the JVMs with
-   * mapping to which configuration entries we can use to set thresholds
-   */
-  enum MemoryPoolType {
-
-    HEAP("Heap") {
-      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
-        return configuration.getHeapMemoryUsageThreshold();
-      }
-    },
-
-    EDEN_SPACE("PS Eden Space") {
-      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
-        return configuration.getEdenSpaceMemoryUsageThreshold();
-      }
-    },
-
-    SURVIVOR_SPACE("PS Survivor Space") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getSurvivorSpaceMemoryUsageThreshold();
-      }
-    },
-
-    OLD_GEN("PS Old Gen") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getOldGenSpaceMemoryUsageThreshold();
-      }
-    },
-
-    COMPRESSED_CLASS_SPACE("Compressed Class Space") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getCompressedClassSpaceMemoryUsageThreshold();
-      }
-    },
-
-    CODE_CACHE("Code Cache") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getCodeCacheMemoryUsageThreshold();
-      }
-    },
-
-    METASPACE("Metaspace") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getMetaspaceMemoryUsageThreshold();
-      }
-    },
-
-    PERM_GEN("PS Perm Gen") {
-      public UsageThresholdConfiguration getThreshold(Configuration configuration) {
-        return configuration.getPermGenMemoryUsageThreshold();
-      }
-    };
-
-    private final String defaultName;
-
-    MemoryPoolType(final String defaultName) {
-      this.defaultName = defaultName;
-    }
-
-    public String getDefaultname() {
-      return defaultName;
-    }
-
-    abstract UsageThresholdConfiguration getThreshold(Configuration configuration);
-
-  }
-
-  interface MemoryPool {
-
-    boolean matches(MemoryPoolMXBean memoryPoolBean);
-
-    UsageThresholdCondition getUsageCondition(MemoryPoolMXBean memoryPoolBean,
-                                              Configuration configuration);
 
   }
 

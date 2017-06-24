@@ -10,7 +10,7 @@ import com.sap.jma.configuration.UsageThresholdConfiguration;
 
 public interface UsageThresholdCondition<C extends UsageThresholdConfiguration> {
 
-  C getUsageThresholdCondition();
+  C getUsageThresholdConfiguration();
 
   void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException;
 

@@ -328,7 +328,8 @@ public class ConfigurationTest {
     final Configuration configuration =
         Configuration.Builder.initializeFromSystemProperties(logger).build();
     final IncreaseOverTimeFrameUsageThresholdConfiguration config =
-        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
+        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration
+            .getHeapMemoryUsageThreshold();
 
     assertThat(config.getDelta(), is(90d));
     assertThat(config.getTimeFrame(), is(3d));
@@ -344,7 +345,8 @@ public class ConfigurationTest {
     final Configuration configuration =
         Configuration.Builder.initializeFromSystemProperties(logger).build();
     final IncreaseOverTimeFrameUsageThresholdConfiguration config =
-        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration.getHeapMemoryUsageThreshold();
+        (IncreaseOverTimeFrameUsageThresholdConfiguration) configuration
+            .getHeapMemoryUsageThreshold();
 
     assertThat(config.getDelta(), is(0.4));
     assertThat(config.getTimeFrame(), is(1d));
@@ -518,5 +520,6 @@ public class ConfigurationTest {
     assertThat(s4.getExecutionAmount(), is(66));
     assertThat(s4.getTimeFrameInMillis(), is(19 * 60 * 60 * 1000L));
   }
+
 
 }

@@ -6,112 +6,52 @@
 
 package com.sap.jma.vms;
 
-import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Configuration;
-import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
-import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.configuration.UsageThresholdConfiguration;
+import com.sap.jma.utils.Supplier;
 import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
 
-abstract class MemoryPoolImpl implements JavaVirtualMachine.MemoryPool {
+public class MemoryPoolImpl implements MemoryPool {
 
-  private final String literal;
+  private final Type type;
+  private final Supplier<MemoryUsage> memoryUsageSupplier;
 
-  private MemoryPoolImpl(final String literal) {
-    this.literal = literal;
+  MemoryPoolImpl(final Type type,
+                 final Supplier<MemoryUsage> memoryUsageSupplier) {
+    this.type = type;
+    this.memoryUsageSupplier = memoryUsageSupplier;
   }
 
-  static JavaVirtualMachine.MemoryPool from(final JavaVirtualMachine.MemoryPoolType type) {
-    return new MemoryPoolImpl(type.getDefaultname()) {
-      @Override
-      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
-        return type.getThreshold(configuration);
-      }
-    };
+  @Override
+  public String getName() {
+    return type.getDefaultName();
   }
 
-  public boolean matches(MemoryPoolMXBean memoryPoolBean) {
-    return literal.equals(memoryPoolBean.getName());
+  @Override
+  public Type getType() {
+    return type;
   }
 
-  public final UsageThresholdCondition getUsageCondition(
-      final MemoryPoolMXBean memoryPoolBean, final Configuration configuration) {
-    final UsageThresholdConfiguration usageThresholdConfiguration = getThreshold(configuration);
+  @Override
+  public UsageThresholdCondition<?> toCondition(final Configuration configuration) {
+    final UsageThresholdConfiguration usageThresholdConfiguration =
+        type.getThreshold(configuration);
 
     if (usageThresholdConfiguration == null) {
       return null;
-    } else if (usageThresholdConfiguration instanceof AbsoluteUsageThresholdConfiguration) {
-      return new AbsoluteUsageThresholdConditionImpl() {
-
-        @Override
-        protected String getMemoryPoolName() {
-          return memoryPoolBean.getName();
-        }
-
-        @Override
-        protected double getCurrentUsageInBytes() {
-          return memoryPoolBean.getUsage().getUsed();
-        }
-
-        @Override
-        public AbsoluteUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (AbsoluteUsageThresholdConfiguration) usageThresholdConfiguration;
-        }
-
-      };
-    } else if (usageThresholdConfiguration instanceof PercentageUsageThresholdConfiguration) {
-      return new PercentageUsageThresholdConditionImpl() {
-
-        @Override
-        protected String getMemoryPoolName() {
-          return memoryPoolBean.getName();
-        }
-
-        @Override
-        protected long getMemoryUsed() {
-          return memoryPoolBean.getUsage().getUsed();
-        }
-
-        @Override
-        protected long getMemoryMax() {
-          return memoryPoolBean.getUsage().getMax();
-        }
-
-        @Override
-        public PercentageUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (PercentageUsageThresholdConfiguration) usageThresholdConfiguration;
-        }
-
-      };
-    } else if (usageThresholdConfiguration instanceof IncreaseOverTimeFrameUsageThresholdConfiguration) {
-      return new IncreaseOverTimeFrameUsageThresholdConditionImpl() {
-
-        @Override
-        protected String getMemoryPoolName() {
-          return memoryPoolBean.getName();
-        }
-
-        @Override
-        protected long getMemoryUsed() {
-          return memoryPoolBean.getUsage().getUsed();
-        }
-
-        @Override
-        protected long getMemoryMax() {
-          return memoryPoolBean.getUsage().getMax();
-        }
-
-        @Override
-        public IncreaseOverTimeFrameUsageThresholdConfiguration getUsageThresholdCondition() {
-          return (IncreaseOverTimeFrameUsageThresholdConfiguration) usageThresholdConfiguration;
-        }
-      };
-    } else {
-      throw new IllegalStateException("Unknown type of threshold configuration: "
-          + usageThresholdConfiguration);
     }
+
+    return usageThresholdConfiguration.toCondition(this);
   }
 
-  protected abstract UsageThresholdConfiguration getThreshold(Configuration configuration);
+  @Override
+  public MemoryUsage getMemoryUsage() {
+    return memoryUsageSupplier.get();
+  }
+
+  public boolean matches(final MemoryPoolMXBean memoryPoolBean) {
+    return type.getDefaultName().equals(memoryPoolBean.getName());
+  }
 
 }

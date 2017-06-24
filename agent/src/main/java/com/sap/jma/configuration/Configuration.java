@@ -10,7 +10,7 @@ import static com.sap.jma.configuration.IntervalTimeUnit.MILLISECONDS;
 
 import com.sap.jma.HeapDumpNameFormatter;
 import com.sap.jma.logging.Logger;
-import com.sap.jma.vms.JavaVirtualMachine.MemoryPoolType;
+import com.sap.jma.vms.MemoryPool.Type;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -264,7 +264,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.heapMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.HEAP, value);
+            parseThreshold(Type.HEAP, value);
       }
     },
 
@@ -273,7 +273,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.codeCacheMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.CODE_CACHE, value);
+            parseThreshold(Type.CODE_CACHE, value);
       }
     },
 
@@ -282,7 +282,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.permGenMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.PERM_GEN, value);
+            parseThreshold(Type.PERM_GEN, value);
       }
     },
 
@@ -291,7 +291,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.metaSpaceMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.METASPACE, value);
+            parseThreshold(Type.METASPACE, value);
       }
     },
 
@@ -300,7 +300,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.compressedClassSpaceMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.COMPRESSED_CLASS_SPACE, value);
+            parseThreshold(Type.COMPRESSED_CLASS_SPACE, value);
       }
     },
 
@@ -309,7 +309,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.edenSpaceMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.EDEN_SPACE, value);
+            parseThreshold(Type.EDEN_SPACE, value);
       }
     },
 
@@ -318,7 +318,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.survivorSpaceMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.SURVIVOR_SPACE, value);
+            parseThreshold(Type.SURVIVOR_SPACE, value);
       }
     },
 
@@ -327,7 +327,7 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.oldGenSpaceMemoryUsageThreshold =
-            parseThreshold(MemoryPoolType.OLD_GEN, value);
+            parseThreshold(Type.OLD_GEN, value);
       }
     },
 
@@ -423,7 +423,7 @@ public class Configuration {
       }
     }
 
-    private static UsageThresholdConfiguration parseThreshold(final MemoryPoolType memoryPool,
+    private static UsageThresholdConfiguration parseThreshold(final Type memoryPool,
                                                               final String value)
         throws InvalidPropertyValueException {
       final String trimmedValue = value.trim();
@@ -628,7 +628,8 @@ public class Configuration {
                   continue;
                 }
 
-                configValue = (IncreaseOverTimeFrameUsageThresholdConfiguration) usageThresholdConfiguration;
+                configValue = IncreaseOverTimeFrameUsageThresholdConfiguration.class
+                    .cast(usageThresholdConfiguration);
               }
 
               final double timeFrame = configValue.getTimeFrame();
@@ -639,7 +640,7 @@ public class Configuration {
 
               if (checkIntervalInMillis > timeFrameInMillis / 2) {
                 warnings.add("the time-frame for the threshold for memory pool '"
-                    + configValue.getMemoryPool().getDefaultname() + "' of " + timeFrame
+                    + configValue.getMemoryPoolType().getDefaultName() + "' of " + timeFrame
                     + timeUnit.getLiteral()
                     + " is too short compared to the overall check-interval of "
                     + checkIntervalInMillis
