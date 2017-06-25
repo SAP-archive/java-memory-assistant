@@ -10,7 +10,7 @@ public class EnumUtils {
 
   private EnumUtils() {}
 
-  public static String toString(final Enum<? extends Enum>[] array) {
+  public static String join(final Enum<? extends Enum>[] array, final String on) {
     if (array == null || array.length < 1) {
       return "";
     }
@@ -19,11 +19,15 @@ public class EnumUtils {
     for (int i = 0, l = array.length; i < l; ++i) {
       sb.append(array[i].toString());
       if (i < l - 1) {
-        sb.append(", ");
+        sb.append(on);
       }
     }
 
     return sb.toString();
+  }
+
+  public static String join(final Enum<? extends Enum>[] array) {
+    return join(array, ", ");
   }
 
 }

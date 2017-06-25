@@ -57,7 +57,7 @@ public enum Comparison {
 
     throw new IllegalArgumentException(
         String.format("Comparison operator '%s' is not recognized; valid values are: %s",
-            actual, EnumUtils.toString(values())));
+            actual, EnumUtils.join(values())));
   }
 
 }
