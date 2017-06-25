@@ -7,6 +7,7 @@
 package com.sap.jma.vms;
 
 import com.sap.jma.configuration.UsageThresholdConfiguration;
+import com.sap.jma.logging.Logger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -19,11 +20,14 @@ abstract class AbstractUsageThresholdCondition<C extends UsageThresholdConfigura
 
   private final C configuration;
   protected final MemoryPool memoryPool;
+  protected final Logger logger;
 
   protected AbstractUsageThresholdCondition(final C configuration,
-                                            final MemoryPool memoryPool) {
+                                            final MemoryPool memoryPool,
+                                            final Logger logger) {
     this.configuration = configuration;
     this.memoryPool = memoryPool;
+    this.logger = logger;
   }
 
   protected final String getMemoryPoolName() {

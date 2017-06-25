@@ -28,8 +28,6 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
   final long measurementPeriod = getUsageThresholdConfiguration().getTimeUnit()
       .toMilliSeconds(getUsageThresholdConfiguration().getTimeFrame()) / 2;
 
-  private final Logger logger;
-
   public IncreaseOverTimeFrameUsageThresholdCondition(
       final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
@@ -42,8 +40,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
       final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool,
       final Logger logger) {
-    super(configuration, memoryPool);
-    this.logger = logger;
+    super(configuration, memoryPool, logger);
   }
 
   // VisibleForTesting

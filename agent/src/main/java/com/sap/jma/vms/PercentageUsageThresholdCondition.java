@@ -19,7 +19,15 @@ public class PercentageUsageThresholdCondition
   public PercentageUsageThresholdCondition(
       final PercentageUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
-    super(configuration, memoryPool);
+    this(configuration, memoryPool, Logger.Factory.get(PercentageUsageThresholdCondition.class));
+  }
+
+  // VisibleForTesting
+  PercentageUsageThresholdCondition(
+      final PercentageUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool,
+      final Logger logger) {
+    super(configuration, memoryPool, logger);
   }
 
   private double getCurrentUsageRatio() {
