@@ -10,11 +10,11 @@ import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Comparison;
 import com.sap.jma.configuration.MemorySizeUnit;
 
-public class AbsoluteUsageThresholdConditionImpl extends
-    AbstractUsageThresholdConditionImpl<AbsoluteUsageThresholdConfiguration> {
+public class AbsoluteUsageThresholdCondition extends
+    AbstractUsageThresholdCondition<AbsoluteUsageThresholdConfiguration> {
 
   //VisibleForTesting
-  public AbsoluteUsageThresholdConditionImpl(
+  public AbsoluteUsageThresholdCondition(
       final AbsoluteUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
     super(configuration, memoryPool);

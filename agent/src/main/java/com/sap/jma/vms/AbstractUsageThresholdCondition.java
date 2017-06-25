@@ -11,7 +11,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-abstract class AbstractUsageThresholdConditionImpl<C extends UsageThresholdConfiguration>
+abstract class AbstractUsageThresholdCondition<C extends UsageThresholdConfiguration>
     implements UsageThresholdCondition<C> {
 
   static final DecimalFormat DECIMAL_FORMAT =
@@ -20,8 +20,8 @@ abstract class AbstractUsageThresholdConditionImpl<C extends UsageThresholdConfi
   private final C configuration;
   protected final MemoryPool memoryPool;
 
-  protected AbstractUsageThresholdConditionImpl(final C configuration,
-                                                final MemoryPool memoryPool) {
+  protected AbstractUsageThresholdCondition(final C configuration,
+                                            final MemoryPool memoryPool) {
     this.configuration = configuration;
     this.memoryPool = memoryPool;
   }

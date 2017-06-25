@@ -8,7 +8,7 @@ package com.sap.jma.configuration;
 
 import com.sap.jma.vms.MemoryPool.Type;
 import com.sap.jma.vms.MemoryPool;
-import com.sap.jma.vms.PercentageUsageThresholdConditionImpl;
+import com.sap.jma.vms.PercentageUsageThresholdCondition;
 import com.sap.jma.vms.UsageThresholdCondition;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
@@ -74,7 +74,7 @@ public class PercentageUsageThresholdConfiguration implements UsageThresholdConf
   @Override
   public UsageThresholdCondition<PercentageUsageThresholdConfiguration> toCondition(
       final MemoryPool memoryPool) {
-    return new PercentageUsageThresholdConditionImpl(this, memoryPool);
+    return new PercentageUsageThresholdCondition(this, memoryPool);
   }
 
 }

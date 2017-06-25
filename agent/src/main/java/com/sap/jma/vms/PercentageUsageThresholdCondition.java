@@ -10,13 +10,13 @@ import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import java.lang.management.MemoryUsage;
 
-public class PercentageUsageThresholdConditionImpl
-    extends AbstractUsageThresholdConditionImpl<PercentageUsageThresholdConfiguration> {
+public class PercentageUsageThresholdCondition
+    extends AbstractUsageThresholdCondition<PercentageUsageThresholdConfiguration> {
 
   private static final Logger LOGGER =
       Logger.Factory.get(UsageThresholdCondition.class);
 
-  public PercentageUsageThresholdConditionImpl(
+  public PercentageUsageThresholdCondition(
       final PercentageUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
     super(configuration, memoryPool);
