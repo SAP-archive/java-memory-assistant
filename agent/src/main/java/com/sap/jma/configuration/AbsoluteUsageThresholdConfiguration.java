@@ -6,7 +6,7 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.AbsoluteUsageThresholdConditionImpl;
+import com.sap.jma.vms.AbsoluteUsageThresholdCondition;
 import com.sap.jma.vms.MemoryPool.Type;
 import com.sap.jma.vms.MemoryPool;
 import com.sap.jma.vms.UsageThresholdCondition;
@@ -80,7 +80,7 @@ public class AbsoluteUsageThresholdConfiguration implements UsageThresholdConfig
   @Override
   public UsageThresholdCondition<AbsoluteUsageThresholdConfiguration> toCondition(
       final MemoryPool memoryPool) {
-    return new AbsoluteUsageThresholdConditionImpl(this, memoryPool);
+    return new AbsoluteUsageThresholdCondition(this, memoryPool);
   }
 
   @Override

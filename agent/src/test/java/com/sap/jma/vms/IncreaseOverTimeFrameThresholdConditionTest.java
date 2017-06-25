@@ -28,7 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class IncreaseOverTimeFrameThresholdConditionImplTest {
+public class IncreaseOverTimeFrameThresholdConditionTest {
 
   @Rule
   public final ExpectedException expectedException = ExpectedException.none();
@@ -41,12 +41,12 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
   private final Logger logger = mock(Logger.class);
 
-  private static TypeSafeMatcher<IncreaseOverTimeFrameUsageThresholdConditionImpl>
+  private static TypeSafeMatcher<IncreaseOverTimeFrameUsageThresholdCondition>
       hasMeasurementPeriodInMillis(final long millis) {
-    return new TypeSafeMatcher<IncreaseOverTimeFrameUsageThresholdConditionImpl>() {
+    return new TypeSafeMatcher<IncreaseOverTimeFrameUsageThresholdCondition>() {
       @Override
       protected boolean matchesSafely(
-          IncreaseOverTimeFrameUsageThresholdConditionImpl condition) {
+          IncreaseOverTimeFrameUsageThresholdCondition condition) {
         return millis == condition.measurementPeriod;
       }
 
@@ -79,7 +79,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     doReturn(100L).when(memoryUsage).getMax();
     when(memoryUsage.getUsed()).thenReturn(10L, 50L);
 
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl condition =
+    final IncreaseOverTimeFrameUsageThresholdCondition condition =
         createCondition(20d, 3d, TimeUnit.SECONDS);
 
     assertThat(condition, hasMeasurementPeriodInMillis(1500L));
@@ -88,7 +88,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     verify(logger).debug("First measurement for memory pool 'TestPool'");
 
     assertThat(condition.measurements, hasSize(1));
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement firstPoint =
+    final IncreaseOverTimeFrameUsageThresholdCondition.Measurement firstPoint =
         condition.measurements.peek();
     assertThat(firstPoint.getTimestamp(), is(400L));
 
@@ -108,7 +108,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
       assertThat(condition.measurements, hasSize(2));
       assertThat(condition.measurements.getFirst(), sameInstance(firstPoint));
 
-      final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement secondPoint =
+      final IncreaseOverTimeFrameUsageThresholdCondition.Measurement secondPoint =
           condition.measurements.getLast();
       assertThat(secondPoint.getTimestamp(), is(3400L));
     }
@@ -120,7 +120,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     when(memoryUsage.getUsed()).thenReturn(10L, 5L, 24L, 23L);
     when(clock.getMillis()).thenReturn(400L, 1901L, 3402L, 5002L);
 
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl condition =
+    final IncreaseOverTimeFrameUsageThresholdCondition condition =
         createCondition(20d, 3d, TimeUnit.SECONDS);
 
     assertThat(condition, hasMeasurementPeriodInMillis(1500L));
@@ -129,7 +129,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     condition.evaluate();
 
     assertThat(condition.measurements, hasSize(1));
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement firstPoint =
+    final IncreaseOverTimeFrameUsageThresholdCondition.Measurement firstPoint =
         condition.measurements.peek();
     assertThat(firstPoint.getTimestamp(), is(400L));
 
@@ -140,7 +140,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
     assertThat(condition.measurements, hasSize(2));
     assertThat(condition.measurements.peek(), sameInstance(firstPoint));
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement secondPoint =
+    final IncreaseOverTimeFrameUsageThresholdCondition.Measurement secondPoint =
         condition.measurements.getLast();
     assertThat(secondPoint.getTimestamp(), is(1901L));
 
@@ -155,7 +155,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
 
     assertThat(condition.measurements, hasSize(3));
     assertThat(condition.measurements.getFirst(), sameInstance(firstPoint));
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement thirdPoint =
+    final IncreaseOverTimeFrameUsageThresholdCondition.Measurement thirdPoint =
         condition.measurements.getLast();
     assertThat(thirdPoint.getTimestamp(), is(3402L));
 
@@ -169,7 +169,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
     condition.evaluate();
     assertThat(condition.measurements, hasSize(3));
     assertThat(condition.measurements.getFirst(), sameInstance(secondPoint));
-    final IncreaseOverTimeFrameUsageThresholdConditionImpl.Measurement fourthPoint =
+    final IncreaseOverTimeFrameUsageThresholdCondition.Measurement fourthPoint =
         condition.measurements.getLast();
     assertThat(fourthPoint.getTimestamp(), is(5002L));
 
@@ -177,14 +177,14 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
         + "than maximum 20% increase (actual increase: 18%) over the last 3.1s");
   }
 
-  private IncreaseOverTimeFrameUsageThresholdConditionImpl createCondition(final double delta,
-                                                                           final double period,
-                                                                           final TimeUnit timeUnit)
+  private IncreaseOverTimeFrameUsageThresholdCondition createCondition(final double delta,
+                                                                       final double period,
+                                                                       final TimeUnit timeUnit)
       throws Exception {
     return createCondition(delta, period, timeUnit, memoryPool);
   }
 
-  private IncreaseOverTimeFrameUsageThresholdConditionImpl
+  private IncreaseOverTimeFrameUsageThresholdCondition
       createCondition(final double delta, final double period,
                       final TimeUnit timeUnit, final MemoryPool memoryPool)
       throws Exception {
@@ -192,7 +192,7 @@ public class IncreaseOverTimeFrameThresholdConditionImplTest {
         IncreaseOverTimeFrameUsageThresholdConfiguration.parse(memoryPool.getType(),
             "+" + String.valueOf(delta) + "%/" + String.valueOf(period)
             + IntervalTimeUnit.from(timeUnit).getLiteral());
-    return new IncreaseOverTimeFrameUsageThresholdConditionImpl(configuration, memoryPool, logger) {
+    return new IncreaseOverTimeFrameUsageThresholdCondition(configuration, memoryPool, logger) {
       @Override
       protected Clock getClock() {
         return clock;

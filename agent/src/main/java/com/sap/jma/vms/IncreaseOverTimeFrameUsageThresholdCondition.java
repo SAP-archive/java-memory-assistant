@@ -18,8 +18,8 @@ import java.util.LinkedList;
  * TODO How to take into account the Garbage collection?
  * The more GC, the WORSE violating this condition means
  */
-public class IncreaseOverTimeFrameUsageThresholdConditionImpl
-    extends AbstractUsageThresholdConditionImpl<IncreaseOverTimeFrameUsageThresholdConfiguration> {
+public class IncreaseOverTimeFrameUsageThresholdCondition
+    extends AbstractUsageThresholdCondition<IncreaseOverTimeFrameUsageThresholdConfiguration> {
 
   // VisibleForTesting
   final Deque<Measurement> measurements = new LinkedList<>();
@@ -30,15 +30,15 @@ public class IncreaseOverTimeFrameUsageThresholdConditionImpl
 
   private final Logger logger;
 
-  public IncreaseOverTimeFrameUsageThresholdConditionImpl(
+  public IncreaseOverTimeFrameUsageThresholdCondition(
       final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
     this(configuration, memoryPool,
-        Logger.Factory.get(IncreaseOverTimeFrameUsageThresholdConditionImpl.class));
+        Logger.Factory.get(IncreaseOverTimeFrameUsageThresholdCondition.class));
   }
 
   //VisibleForTesting
-  IncreaseOverTimeFrameUsageThresholdConditionImpl(
+  IncreaseOverTimeFrameUsageThresholdCondition(
       final IncreaseOverTimeFrameUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool,
       final Logger logger) {

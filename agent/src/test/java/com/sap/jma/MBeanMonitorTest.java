@@ -32,7 +32,7 @@ import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.MemoryPool;
-import com.sap.jma.vms.PercentageUsageThresholdConditionImpl;
+import com.sap.jma.vms.PercentageUsageThresholdCondition;
 import com.sap.jma.vms.UsageThresholdCondition;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
@@ -1024,7 +1024,7 @@ public class MBeanMonitorTest {
       doReturn(1131L).when(memoryUsage).getMax();
       doReturn(365L).when(memoryUsage).getUsed();
 
-      new PercentageUsageThresholdConditionImpl(new PercentageUsageThresholdConfiguration(
+      new PercentageUsageThresholdCondition(new PercentageUsageThresholdConfiguration(
           MemoryPool.Type.HEAP, 50f), memoryPool).evaluate();
     }
 

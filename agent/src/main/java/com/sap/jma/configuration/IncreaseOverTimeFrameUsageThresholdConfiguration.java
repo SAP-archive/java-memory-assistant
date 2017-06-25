@@ -6,7 +6,7 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.IncreaseOverTimeFrameUsageThresholdConditionImpl;
+import com.sap.jma.vms.IncreaseOverTimeFrameUsageThresholdCondition;
 import com.sap.jma.vms.MemoryPool.Type;
 import com.sap.jma.vms.MemoryPool;
 import com.sap.jma.vms.UsageThresholdCondition;
@@ -134,7 +134,7 @@ public class IncreaseOverTimeFrameUsageThresholdConfiguration
   @Override
   public UsageThresholdCondition<IncreaseOverTimeFrameUsageThresholdConfiguration> toCondition(
       final MemoryPool memoryPool) {
-    return new IncreaseOverTimeFrameUsageThresholdConditionImpl(this, memoryPool);
+    return new IncreaseOverTimeFrameUsageThresholdCondition(this, memoryPool);
   }
 
 }
