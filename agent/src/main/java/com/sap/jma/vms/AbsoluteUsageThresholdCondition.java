@@ -9,15 +9,23 @@ package com.sap.jma.vms;
 import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Comparison;
 import com.sap.jma.configuration.MemorySizeUnit;
+import com.sap.jma.logging.Logger;
 
 public class AbsoluteUsageThresholdCondition extends
     AbstractUsageThresholdCondition<AbsoluteUsageThresholdConfiguration> {
 
-  //VisibleForTesting
   public AbsoluteUsageThresholdCondition(
       final AbsoluteUsageThresholdConfiguration configuration,
       final MemoryPool memoryPool) {
-    super(configuration, memoryPool);
+    this(configuration, memoryPool, Logger.Factory.get(AbsoluteUsageThresholdCondition.class));
+  }
+
+  //VisibleForTesting
+  AbsoluteUsageThresholdCondition(
+      final AbsoluteUsageThresholdConfiguration configuration,
+      final MemoryPool memoryPool,
+      final Logger logger) {
+    super(configuration, memoryPool, logger);
   }
 
   public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
