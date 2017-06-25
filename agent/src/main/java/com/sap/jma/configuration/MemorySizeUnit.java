@@ -35,7 +35,7 @@ public enum MemorySizeUnit {
 
     throw new IllegalArgumentException(
         String.format("Memory size unit '%s' is not recognized; valid values are: %s", actual,
-            EnumUtils.toString(values())));
+            EnumUtils.join(values())));
   }
 
   public double toBytes(double valueInUnitSize) {
