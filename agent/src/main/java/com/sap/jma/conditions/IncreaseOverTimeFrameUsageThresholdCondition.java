@@ -4,11 +4,12 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
+import com.sap.jma.vms.MemoryPool;
 import java.lang.management.MemoryUsage;
 import java.util.Deque;
 import java.util.Iterator;
@@ -54,7 +55,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
   }
 
   @Override
-  public void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
+  public void evaluate() throws UsageThresholdConditionViolatedException {
     final long now = getClock().getMillis();
 
     if (!measurements.isEmpty()) {
@@ -100,7 +101,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
     final long actualTimeFrameInMillis = last.getTimestamp() - first.getTimestamp();
     if (actualIncrease >= usageThreshold.getDelta() && actualTimeFrameInMillis
         >= usageThreshold.getTimeUnit().toMilliSeconds(usageThreshold.getTimeFrame())) {
-      throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
+      throw new UsageThresholdConditionViolatedException(
           String.format("Memory pool '%s' at %s%% usage, increased from %s%% by more "
                   + "than maximum %s%% increase (actual increase: %s%%) over the last %s%s",
               getMemoryPoolName(), //

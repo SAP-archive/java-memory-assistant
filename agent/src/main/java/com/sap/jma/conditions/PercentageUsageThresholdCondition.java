@@ -4,10 +4,11 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
+import com.sap.jma.vms.MemoryPool;
 import java.lang.management.MemoryUsage;
 
 public class PercentageUsageThresholdCondition
@@ -35,11 +36,11 @@ public class PercentageUsageThresholdCondition
     return memoryUsage.getUsed() * 100d / memoryUsage.getMax();
   }
 
-  public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
+  public final void evaluate() throws UsageThresholdConditionViolatedException {
     final double usageRatio = getCurrentUsageRatio();
 
     if (getUsageThresholdConfiguration().getValue() < usageRatio) {
-      throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
+      throw new UsageThresholdConditionViolatedException(
           getDescription(usageRatio));
     } else {
       LOGGER.debug(getDescription(usageRatio));

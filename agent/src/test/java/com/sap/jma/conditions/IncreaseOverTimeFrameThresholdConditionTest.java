@@ -4,7 +4,7 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -15,10 +15,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.sap.jma.conditions.UsageThresholdCondition.UsageThresholdConditionViolatedException;
 import com.sap.jma.configuration.IncreaseOverTimeFrameUsageThresholdConfiguration;
 import com.sap.jma.configuration.IntervalTimeUnit;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.time.Clock;
+import com.sap.jma.vms.MemoryPool;
 import java.lang.management.MemoryUsage;
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.Description;
@@ -99,7 +101,7 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
     assertThat(condition.measurements.peek(), sameInstance(firstPoint));
 
     // 3rd eval should add a measurement point, perform check, and fail
-    expectedException.expect(JavaVirtualMachine.UsageThresholdConditionViolatedException.class);
+    expectedException.expect(UsageThresholdConditionViolatedException.class);
     expectedException.expectMessage(is("Memory pool 'TestPool' at 50% usage, increased from 10% "
         + "by more than maximum 20% increase (actual increase: 40%) over the last 3.0s"));
     try {

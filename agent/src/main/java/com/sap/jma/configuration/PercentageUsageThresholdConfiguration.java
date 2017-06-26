@@ -6,10 +6,10 @@
 
 package com.sap.jma.configuration;
 
-import com.sap.jma.vms.MemoryPool.Type;
+import com.sap.jma.conditions.PercentageUsageThresholdCondition;
+import com.sap.jma.conditions.UsageThresholdCondition;
 import com.sap.jma.vms.MemoryPool;
-import com.sap.jma.vms.PercentageUsageThresholdCondition;
-import com.sap.jma.vms.UsageThresholdCondition;
+import com.sap.jma.vms.MemoryPool.Type;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

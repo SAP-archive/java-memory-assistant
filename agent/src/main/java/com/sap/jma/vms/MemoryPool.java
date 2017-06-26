@@ -6,6 +6,7 @@
 
 package com.sap.jma.vms;
 
+import com.sap.jma.conditions.UsageThresholdCondition;
 import com.sap.jma.configuration.Configuration;
 import com.sap.jma.configuration.UsageThresholdConfiguration;
 import java.lang.management.MemoryPoolMXBean;
