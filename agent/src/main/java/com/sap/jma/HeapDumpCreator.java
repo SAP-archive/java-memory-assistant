@@ -58,25 +58,22 @@ class HeapDumpCreator {
     try {
       commandExecutor.executeBeforeHeapDumpCommand(heapDumpFileName);
     } catch (final CommandExecutor.CommandExecutionException ex) {
-      logger.error(String.format("Execution of command before heap dump '%s' failed",
-          heapDumpFileName), ex);
+      logger.error("Execution of command before heap dump '%s' failed", heapDumpFileName, ex);
       return;
     }
 
     try {
       heapDumpMethod.invoke(heapDumpBean, heapDumpFileName, true);
-      logger.info("Heap dump " + heapDumpFileName + " created");
+      logger.info("Heap dump '%s' created", heapDumpFileName);
     } catch (final Exception ex) {
-      logger.error(String.format("An error occurred while dumping the heap to file '%s'",
-          heapDumpFileName), ex);
+      logger.error("An error occurred while dumping the heap to file '%s'", heapDumpFileName, ex);
       return;
     }
 
     try {
       commandExecutor.executeAfterHeapDumpCommand(heapDumpFileName);
     } catch (final CommandExecutor.CommandExecutionException ex) {
-      logger.error(String.format("Execution of command after heap dump '%s' failed",
-          heapDumpFileName), ex);
+      logger.error("Execution of command after heap dump '%s' failed", heapDumpFileName, ex);
     }
   }
 

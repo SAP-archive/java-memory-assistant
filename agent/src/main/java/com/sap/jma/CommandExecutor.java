@@ -83,18 +83,15 @@ class CommandExecutor {
     }
 
     if (exitCode == 0) {
-      final String message;
       switch (stage) {
         case ON_SHUTDOWN:
-          message = String.format("Execution of '%s' on shutdown succeeded with exit code 0",
-              normalizedCommand);
+          logger.debug("Execution of '%s' on shutdown succeeded with exit code %d",
+              normalizedCommand, 0);
           break;
         default:
-          message = String.format("Execution of '%s' %s heap dump '%s' succeeded with exit code 0",
-              normalizedCommand, stage.name().toLowerCase(), heapDumpFileName);
+          logger.debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+              normalizedCommand, stage.name().toLowerCase(), heapDumpFileName, 0);
       }
-
-      logger.debug(message);
     } else {
       final String message;
       switch (stage) {

@@ -68,7 +68,7 @@ class MBeanMonitor extends Monitor {
     final List<MemoryPoolMXBean> memoryPoolMxBeans = getMemoryPoolMxBeans();
     for (final MemoryPoolMXBean poolBean : memoryPoolMxBeans) {
       final String poolName = poolBean.getName();
-      logger.debug(String.format("Memory pool found: %s", poolName));
+      logger.debug("Memory pool found: %s", poolName);
 
       final MemoryPool memoryPool = jvm.getMemoryPool(poolBean);
       final UsageThresholdCondition memoryPoolCondition = memoryPool.toCondition(configuration);
@@ -79,14 +79,13 @@ class MBeanMonitor extends Monitor {
     }
 
     if (memoryPoolConditions.isEmpty()) {
-      logger.warning("No memory conditions have been specified; "
-          + "the heap-dump agent will not perform checks");
+      logger.warning("No memory conditions have been specified; the agent will not perform checks");
       return;
     }
 
     final String memoryConditionsMessage = (memoryPoolConditions.size() == 1)
         ? "One memory condition has been specified"
-        : String.format("%d memory conditions have been specified", memoryPoolConditions.size());
+        : memoryPoolConditions.size() + " memory conditions have been specified";
 
     if (configuration.getCheckIntervalInMillis() < 0) {
       logger.error(memoryConditionsMessage
@@ -102,9 +101,8 @@ class MBeanMonitor extends Monitor {
         conditions.append(memoryPoolCondition);
       }
 
-      logger.debug(memoryConditionsMessage
-          + String.format(" (checks will occur every %d milliseconds):%s",
-              configuration.getCheckIntervalInMillis(), conditions));
+      logger.debug("%s (checks will occur every %d milliseconds):%s", memoryConditionsMessage,
+          configuration.getCheckIntervalInMillis(), conditions);
 
       executorService = executorServiceProvider.call();
       executorService.scheduleWithFixedDelay(new HeapDumpCheck(),
@@ -147,9 +145,8 @@ class MBeanMonitor extends Monitor {
     final String vmVendor = runtimeBean.getVmVendor();
     final String vmVersion = runtimeBean.getVmVersion();
 
-    logger.debug(
-        String.format("JVM spec vendor: '%s'; spec version: '%s'; vm vendor: '%s'; "
-            + "vm version: '%s'", specVendor, specVersion, vmVendor, vmVersion));
+    logger.debug("JVM spec vendor: '%s'; spec version: '%s'; vm vendor: '%s'; vm version: '%s'",
+        specVendor, specVersion, vmVendor, vmVersion);
 
     return JavaVirtualMachine.Supported.find(vmVendor, specVersion);
   }
@@ -182,7 +179,7 @@ class MBeanMonitor extends Monitor {
         logger.error("Error while triggering heap dump", ex);
       } finally {
         if (printCause) {
-          logger.info(sb.toString());
+          logger.info(sb);
         }
       }
     }
