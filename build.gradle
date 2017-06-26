@@ -8,9 +8,15 @@ plugins {
     id 'com.github.hierynomus.license' version '0.13.1'
 }
 
-final VERSION = new File('version').getText('UTF-8')
+final VERSION = new File('version').getText('UTF-8').trim()
 
 logger.lifecycle("Building Java Memory Assistant version '${VERSION}'")
+
+gradle.taskGraph.whenReady { graph ->
+    if (!(VERSION ==~ /(\d+)\.(\d+)\.(\d+)(-SNAPSHOT)?/)) {
+        throw new org.gradle.api.resources.ResourceException("Invalid version: " + VERSION)
+    }
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
