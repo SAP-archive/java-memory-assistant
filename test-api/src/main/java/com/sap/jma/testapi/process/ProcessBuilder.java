@@ -61,10 +61,15 @@ public class ProcessBuilder {
     return this;
   }
 
-  public ProcessBuilder withSystemProperty(final String propertyName, final String value) {
-    systemProperties.put(propertyName, value);
+  public ProcessBuilder withSystemProperty(final String property, final String value) {
+    systemProperties.put(property, value);
 
     return this;
+  }
+
+  public ProcessBuilder withSystemProperty(final Enum<? extends Enum> property,
+                                           final String value) {
+    return withSystemProperty(property.toString(), value);
   }
 
   public Process buildAndRunUntil(final ProcessCondition processCondition) throws Exception {
