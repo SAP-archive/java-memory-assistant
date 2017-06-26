@@ -26,6 +26,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.sap.jma.conditions.PercentageUsageThresholdCondition;
+import com.sap.jma.conditions.UsageThresholdCondition;
 import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Configuration;
 import com.sap.jma.configuration.InvalidPropertyValueException;
@@ -34,8 +36,6 @@ import com.sap.jma.logging.Logger;
 import com.sap.jma.testapi.Matchers;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.MemoryPool;
-import com.sap.jma.vms.PercentageUsageThresholdCondition;
-import com.sap.jma.vms.UsageThresholdCondition;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;

@@ -120,14 +120,8 @@ public interface JavaVirtualMachine {
 
   }
 
-  final class UsageThresholdConditionViolatedException extends Exception {
-    UsageThresholdConditionViolatedException(String message) {
-      super(message);
-    }
-  }
-
   final class UnsupportedJavaVirtualMachineException extends Exception {
-    UnsupportedJavaVirtualMachineException(String vendor, String specVersion) {
+    public UnsupportedJavaVirtualMachineException(String vendor, String specVersion) {
       super(String.format("JVM with vendor '%s' and spec version '%s' is not supported",
           vendor, specVersion));
     }

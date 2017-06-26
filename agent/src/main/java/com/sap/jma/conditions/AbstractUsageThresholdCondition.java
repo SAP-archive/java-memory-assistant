@@ -4,10 +4,11 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import com.sap.jma.configuration.UsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
+import com.sap.jma.vms.MemoryPool;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;

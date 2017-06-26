@@ -4,12 +4,13 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import com.sap.jma.configuration.AbsoluteUsageThresholdConfiguration;
 import com.sap.jma.configuration.Comparison;
 import com.sap.jma.configuration.MemorySizeUnit;
 import com.sap.jma.logging.Logger;
+import com.sap.jma.vms.MemoryPool;
 
 public class AbsoluteUsageThresholdCondition extends
     AbstractUsageThresholdCondition<AbsoluteUsageThresholdConfiguration> {
@@ -28,7 +29,7 @@ public class AbsoluteUsageThresholdCondition extends
     super(configuration, memoryPool, logger);
   }
 
-  public final void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException {
+  public final void evaluate() throws UsageThresholdConditionViolatedException {
     final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdConfiguration();
     final double currentUsageInBytes = memoryPool.getMemoryUsage().getUsed();
     final double targetUsageInBytes = usageThreshold.getTargetValueInBytes();
@@ -36,7 +37,7 @@ public class AbsoluteUsageThresholdCondition extends
     final Comparison comparison = usageThreshold.getComparison();
 
     if (comparison.compare(currentUsageInBytes, targetUsageInBytes)) {
-      throw new JavaVirtualMachine.UsageThresholdConditionViolatedException(
+      throw new UsageThresholdConditionViolatedException(
           getDescription(currentUsageInBytes, targetUsageInBytes, memorySizeUnit, comparison));
     }
   }

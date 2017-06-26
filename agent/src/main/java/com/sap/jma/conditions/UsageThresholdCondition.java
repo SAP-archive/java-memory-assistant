@@ -4,7 +4,7 @@
  * otherwise in the LICENSE file at the root of the repository.
  */
 
-package com.sap.jma.vms;
+package com.sap.jma.conditions;
 
 import com.sap.jma.configuration.UsageThresholdConfiguration;
 
@@ -12,6 +12,11 @@ public interface UsageThresholdCondition<C extends UsageThresholdConfiguration> 
 
   C getUsageThresholdConfiguration();
 
-  void evaluate() throws JavaVirtualMachine.UsageThresholdConditionViolatedException;
+  void evaluate() throws UsageThresholdConditionViolatedException;
 
+  final class UsageThresholdConditionViolatedException extends Exception {
+    UsageThresholdConditionViolatedException(String message) {
+      super(message);
+    }
+  }
 }

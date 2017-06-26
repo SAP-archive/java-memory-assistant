@@ -8,12 +8,12 @@ package com.sap.jma;
 
 import static com.sap.jma.concurrent.ThreadFactories.deamons;
 
+import com.sap.jma.conditions.UsageThresholdCondition;
 import com.sap.jma.configuration.Configuration;
 import com.sap.jma.configuration.UsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.MemoryPool;
-import com.sap.jma.vms.UsageThresholdCondition;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
@@ -157,7 +157,7 @@ class MBeanMonitor extends Monitor {
     for (final UsageThresholdCondition condition : memoryPoolConditions) {
       try {
         condition.evaluate();
-      } catch (JavaVirtualMachine.UsageThresholdConditionViolatedException ex) {
+      } catch (UsageThresholdCondition.UsageThresholdConditionViolatedException ex) {
         reasons.add(ex.getMessage());
       }
     }
