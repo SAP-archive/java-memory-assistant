@@ -8,15 +8,33 @@ package com.sap.jma.logging;
 
 public interface Logger {
 
-  void error(String message);
+  void error(CharSequence message);
 
-  void error(String message, Throwable throwable);
+  void error(CharSequence message, Throwable throwable);
 
-  void warning(String message);
+  void error(CharSequence message, Object arg0, Throwable throwable);
 
-  void info(String message);
+  void error(CharSequence message, Object arg0, Object arg1, Throwable throwable);
 
-  void debug(String message);
+  void error(CharSequence message, Object arg0, Object arg1, Object arg2, Throwable throwable);
+
+  void error(CharSequence message, Object arg0, Object arg1, Object arg2, Object arg3,
+             Throwable throwable);
+
+  void error(CharSequence message, Object arg0, Object arg1, Object arg2, Object arg3, Object arg4,
+             Throwable throwable);
+
+  void error(CharSequence message, Object arg0, Object arg1, Object arg2, Object arg3, Object arg4,
+             Object arg5, Throwable throwable);
+
+  void error(CharSequence message, Object arg0, Object arg1, Object arg2, Object arg3, Object arg4,
+             Object arg5, Object arg6, Throwable throwable);
+
+  void warning(CharSequence message, Object ... args);
+
+  void info(CharSequence message, Object ... args);
+
+  void debug(CharSequence message, Object ... args);
 
   enum Severity {
     OFF, ERROR, INFO, WARNING, DEBUG
@@ -27,7 +45,7 @@ public interface Logger {
     private Factory() {
     }
 
-    public static void initialize(final Severity severity) {
+    public static void initialize(Severity severity) {
       LoggerImpl.initialize(severity);
     }
 

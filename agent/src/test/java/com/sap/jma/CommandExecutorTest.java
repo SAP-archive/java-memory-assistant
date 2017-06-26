@@ -60,8 +60,8 @@ public class CommandExecutorTest {
 
     subject.executeBeforeHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
-    verify(logger).debug("Execution of 'echo' before heap dump "
-        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "before", "/test/heapdump_myHost_19700115065607.hprof", 0);
     verify(process).waitFor();
   }
 
@@ -81,8 +81,8 @@ public class CommandExecutorTest {
 
     subject.executeBeforeHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
-    verify(logger).debug("Execution of 'echo' before heap dump "
-        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "before", "/test/heapdump_myHost_19700115065607.hprof", 0);
     verify(process).waitFor();
   }
 
@@ -136,8 +136,8 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo", "heapdump_myHost_19700115065607.hprof");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' before heap dump "
-        + "'heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "before", "heapdump_myHost_19700115065607.hprof", 0);
   }
 
   @Test
@@ -151,8 +151,8 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo", "heapdump_myHost_19700115065607.hprof");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' before heap dump "
-        + "'heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "before", "heapdump_myHost_19700115065607.hprof", 0);
   }
 
   @Test
@@ -165,8 +165,8 @@ public class CommandExecutorTest {
 
     subject.executeAfterHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
-    verify(logger).debug("Execution of 'echo' after heap dump "
-        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "after", "/test/heapdump_myHost_19700115065607.hprof", 0);
     verify(process).waitFor();
   }
 
@@ -187,8 +187,8 @@ public class CommandExecutorTest {
     subject.executeAfterHeapDumpCommand("/test/heapdump_myHost_19700115065607.hprof");
 
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' after heap dump "
-        + "'/test/heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "after", "/test/heapdump_myHost_19700115065607.hprof", 0);
   }
 
   @Test
@@ -240,8 +240,8 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo", "heapdump_myHost_19700115065607.hprof");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' after heap dump "
-        + "'heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "after", "heapdump_myHost_19700115065607.hprof", 0);
   }
 
   @Test
@@ -255,8 +255,8 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo", "heapdump_myHost_19700115065607.hprof");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' after heap dump "
-        + "'heapdump_myHost_19700115065607.hprof' succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' %s heap dump '%s' succeeded with exit code %d",
+        "echo", "after", "heapdump_myHost_19700115065607.hprof", 0);
   }
 
   @Test
@@ -269,7 +269,7 @@ public class CommandExecutorTest {
 
     subject.executeOnShutdownCommand();
 
-    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' on shutdown succeeded with exit code %d", "echo", 0);
     verify(process).waitFor();
   }
 
@@ -283,7 +283,7 @@ public class CommandExecutorTest {
 
     subject.executeOnShutdownCommand();
 
-    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' on shutdown succeeded with exit code %d", "echo", 0);
     verify(process).waitFor();
   }
 
@@ -304,7 +304,7 @@ public class CommandExecutorTest {
     subject.executeOnShutdownCommand();
 
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' on shutdown succeeded with exit code %d", "echo", 0);
   }
 
   @Test
@@ -356,7 +356,7 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' on shutdown succeeded with exit code %d", "echo", 0);
   }
 
   @Test
@@ -370,7 +370,7 @@ public class CommandExecutorTest {
 
     verify(subject).startProcess("sh", "echo");
     verify(process).waitFor();
-    verify(logger).debug("Execution of 'echo' on shutdown succeeded with exit code 0");
+    verify(logger).debug("Execution of '%s' on shutdown succeeded with exit code %d", "echo", 0);
   }
 
 }

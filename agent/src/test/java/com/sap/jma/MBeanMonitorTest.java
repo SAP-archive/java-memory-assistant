@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -30,6 +31,7 @@ import com.sap.jma.configuration.Configuration;
 import com.sap.jma.configuration.InvalidPropertyValueException;
 import com.sap.jma.configuration.PercentageUsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
+import com.sap.jma.testapi.Matchers;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.MemoryPool;
 import com.sap.jma.vms.PercentageUsageThresholdCondition;
@@ -69,14 +71,13 @@ public class MBeanMonitorTest {
     return AbsoluteUsageThresholdConfiguration.parse(memoryPool, value);
   }
 
-  private static PercentageUsageThresholdConfiguration
-        percentageThresholdConfiguration(final double usageThreshold) {
+  private static PercentageUsageThresholdConfiguration percentageThresholdConfiguration(
+      final double usageThreshold) {
     return percentageThresholdConfiguration(MemoryPool.Type.HEAP, usageThreshold);
   }
 
-  private static PercentageUsageThresholdConfiguration
-        percentageThresholdConfiguration(final MemoryPool.Type memoryPool,
-                                         final double usageThreshold) {
+  private static PercentageUsageThresholdConfiguration percentageThresholdConfiguration(
+      final MemoryPool.Type memoryPool, final double usageThreshold) {
     return new PercentageUsageThresholdConfiguration(memoryPool, usageThreshold);
   }
 
@@ -105,7 +106,7 @@ public class MBeanMonitorTest {
             public ScheduledExecutorService call() {
               return executor;
             }
-        }, logger));
+          }, logger));
 
       doReturn(jvm).when(subject).findCurrentJvm();
     }
@@ -120,7 +121,7 @@ public class MBeanMonitorTest {
 
       verifyZeroInteractions(executor);
       verify(logger).warning(
-          "No memory conditions have been specified; the heap-dump agent will not perform checks");
+          "No memory conditions have been specified; the agent will not perform checks");
     }
 
     @Test
@@ -261,8 +262,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
+            + "at 60% usage, configured threshold is 20%")));
     }
 
     @Test
@@ -300,8 +302,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Metaspace' at 60% usage, "
-          + "configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Metaspace' at 60% usage, "
+            + "configured threshold is 20%")));
     }
 
     @Test
@@ -347,8 +350,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
+            + "at 60% usage, configured threshold is 20%")));
     }
 
     @Test
@@ -386,8 +390,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Metaspace' at 60% usage, "
-          + "configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Metaspace' at 60% usage, "
+            + "configured threshold is 20%")));
     }
 
     @Test
@@ -433,8 +438,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'PS Perm Gen' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Perm Gen' "
+              + "at 60% usage, configured threshold is 20%")));
     }
 
     @Test
@@ -480,8 +486,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Compressed Class Space' "
+              + "at 60% usage, configured threshold is 20%")));
     }
 
     @Test
@@ -519,8 +526,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Metaspace' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Metaspace' "
+              + "at 60% usage, configured threshold is 20%")));
     }
 
     @Test
@@ -706,8 +714,9 @@ public class MBeanMonitorTest {
       scheduler.tick(1, TimeUnit.MILLISECONDS);
 
       verify(heapDumpCreator, times(1)).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Heap' at 63.4% usage, "
-          + "configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Heap' at 63.4% usage, "
+              + "configured threshold is 20%")));
 
       for (int i = 0; i < 5; ++i) {
         scheduler.tick(1, TimeUnit.MILLISECONDS);
@@ -731,8 +740,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'Heap' at 317B usage, configured threshold is larger than 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Heap' at 317B usage, "
+              + "configured threshold is larger than 20B")));
     }
 
     @Test
@@ -748,8 +758,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'Heap' at 20B usage, configured threshold is equal to 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Heap' at 20B usage, "
+              + "configured threshold is equal to 20B")));
     }
 
     @Test
@@ -765,8 +776,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'Heap' at 10B usage, configured threshold is smaller than 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Heap' at 10B usage, "
+              + "configured threshold is smaller than 20B")));
     }
 
     @Test
@@ -820,8 +832,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'Code Cache' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'Code Cache' at 60% usage, configured "
+              + "threshold is 20%")));
     }
 
     @Test
@@ -859,8 +872,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'PS Eden Space' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 60% usage, "
+              + "configured threshold is 20%")));
     }
 
     @Test
@@ -898,8 +912,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'PS Eden Space' at 317B usage, configured threshold is larger than 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 317B usage, "
+              + "configured threshold is larger than 20B")));
     }
 
     @Test
@@ -914,8 +929,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'PS Eden Space' at 20B usage, configured threshold is equal to 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 20B usage, "
+              + "configured threshold is equal to 20B")));
     }
 
     @Test
@@ -930,8 +946,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n"
-          + "* Memory pool 'PS Eden Space' at 10B usage, configured threshold is smaller than 20B");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 10B usage, "
+              + "configured threshold is smaller than 20B")));
     }
 
     @Test
@@ -946,8 +963,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'PS Survivor Space' "
-          + "at 60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Survivor Space' at 60% usage, "
+              + "configured threshold is 20%")));
     }
 
     @Test
@@ -985,8 +1003,9 @@ public class MBeanMonitorTest {
       scheduler.runNextPendingCommand();
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
-      verify(logger).info("Heap dump triggered because:\n* Memory pool 'PS Old Gen' at "
-          + "60% usage, configured threshold is 20%");
+      verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
+          "Heap dump triggered because:\n* Memory pool 'PS Old Gen' at 60% usage, "
+              + "configured threshold is 20%")));
     }
 
     @Test

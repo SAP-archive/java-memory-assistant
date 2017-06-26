@@ -40,6 +40,30 @@ public final class Matchers {
 
   }
 
+  public static final class CharSequenceMatchers {
+
+    private CharSequenceMatchers() {
+    }
+
+    public static Matcher<CharSequence> equalTo(final CharSequence expected) {
+      return new TypeSafeMatcher<CharSequence>() {
+
+        final Matcher<String> stringMatcher = org.hamcrest.Matchers.equalTo(expected.toString());
+
+        @Override
+        public void describeTo(final Description description) {
+          stringMatcher.describeTo(description);
+        }
+
+        @Override
+        protected boolean matchesSafely(final CharSequence actual) {
+          return stringMatcher.matches(actual.toString());
+        }
+      };
+    }
+
+  }
+
   public static final class StringMatchers {
 
     private StringMatchers() {

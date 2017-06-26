@@ -9,9 +9,7 @@ package com.sap.jma;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -113,9 +111,9 @@ public class HeapDumpCreatorTest {
     verify(commandExecutor).executeBeforeHeapDumpCommand(tempFolder.getRoot().toString()
         + File.separatorChar + "test" + File.separatorChar
         + "heapdump_myHost_19700115065607.hprof");
-    verify(logger).error(eq("Execution of command before heap dump '"
-        + tempFolder.getRoot().toString() + File.separatorChar + "test"
-        + File.separatorChar + "heapdump_myHost_19700115065607.hprof' failed"), same(toBeThrown));
+    verify(logger).error("Execution of command before heap dump '%s' failed",
+        tempFolder.getRoot().toString() + File.separatorChar + "test"
+        + File.separatorChar + "heapdump_myHost_19700115065607.hprof", toBeThrown);
   }
 
   @Test
@@ -136,9 +134,9 @@ public class HeapDumpCreatorTest {
     verify(commandExecutor).executeAfterHeapDumpCommand(tempFolder.getRoot().toString()
         + File.separatorChar + "test" + File.separatorChar
         + "heapdump_myHost_19700115065607.hprof");
-    verify(logger).error(eq("Execution of command after heap dump '"
-        + tempFolder.getRoot().toString() + File.separatorChar + "test" + File.separatorChar
-        + "heapdump_myHost_19700115065607.hprof' failed"), same(toBeThrown));
+    verify(logger).error("Execution of command after heap dump '%s' failed",
+        tempFolder.getRoot().toString() + File.separatorChar + "test" + File.separatorChar
+        + "heapdump_myHost_19700115065607.hprof", toBeThrown);
   }
 
   private void testHeapDump(final String folderName) throws Exception {
@@ -161,8 +159,8 @@ public class HeapDumpCreatorTest {
     subject.createHeapDump(now);
 
     if (assumeHeapDumpSucceeded) {
-      verify(logger).info("Heap dump " + directory + File.separator
-          + "heapdump_myHost_19700115065607.hprof created");
+      verify(logger).info("Heap dump '%s' created", directory + File.separator
+          + "heapdump_myHost_19700115065607.hprof");
       verify(heapDumpBean).dumpHeap(Mockito.eq(directory + File.separator
           + "heapdump_myHost_19700115065607.hprof"), Matchers.eq(true));
     } else {

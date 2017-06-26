@@ -89,7 +89,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
     final Measurement last = new Measurement(now, getCurrentUsageRatio());
     measurements.add(last);
     if (measurements.size() < 2) {
-      logger.debug(String.format("First measurement for memory pool '%s'", getMemoryPoolName()));
+      logger.debug("First measurement for memory pool '%s'", getMemoryPoolName());
       return;
     }
 
@@ -111,7 +111,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
               usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis), //
               usageThreshold.getTimeUnit().getLiteral()));
     } else {
-      logger.debug(String.format("Memory pool '%s' at %s%% usage, changed from %s%% by less "
+      logger.debug("Memory pool '%s' at %s%% usage, changed from %s%% by less "
               + "than maximum %s%% increase (actual increase: %s%%) over the last %s%s",
           getMemoryPoolName(), //
           DECIMAL_FORMAT.format(last.getUsage()), //
@@ -119,7 +119,7 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
           DECIMAL_FORMAT.format(usageThreshold.getDelta()), //
           DECIMAL_FORMAT.format(actualIncrease), //
           usageThreshold.getTimeUnit().fromMilliseconds(actualTimeFrameInMillis), //
-          usageThreshold.getTimeUnit().getLiteral()));
+          usageThreshold.getTimeUnit().getLiteral());
     }
   }
 

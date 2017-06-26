@@ -85,7 +85,7 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
     assertThat(condition, hasMeasurementPeriodInMillis(1500L));
 
     condition.evaluate();
-    verify(logger).debug("First measurement for memory pool 'TestPool'");
+    verify(logger).debug("First measurement for memory pool '%s'", "TestPool");
 
     assertThat(condition.measurements, hasSize(1));
     final IncreaseOverTimeFrameUsageThresholdCondition.Measurement firstPoint =
@@ -133,7 +133,7 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
         condition.measurements.peek();
     assertThat(firstPoint.getTimestamp(), is(400L));
 
-    verify(logger).debug("First measurement for memory pool 'TestPool'");
+    verify(logger).debug("First measurement for memory pool '%s'", "TestPool");
 
     // 2nd eval should not add a measurement point, too early to trigger dump
     condition.evaluate();
@@ -144,8 +144,9 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
         condition.measurements.getLast();
     assertThat(secondPoint.getTimestamp(), is(1901L));
 
-    verify(logger).debug("Memory pool 'TestPool' at 5% usage, changed from 10% by less "
-        + "than maximum 20% increase (actual increase: -5%) over the last 1.5s");
+    verify(logger).debug("Memory pool '%s' at %s%% usage, changed from %s%% by less than maximum "
+        + "%s%% increase (actual increase: %s%%) over the last %s%s", "TestPool", "5", "10", "20",
+        "-5", 1.5D, "s");
 
     /*
      * 3rd eval should not add a measurement point as not enough time has elapsed before
@@ -159,8 +160,9 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
         condition.measurements.getLast();
     assertThat(thirdPoint.getTimestamp(), is(3402L));
 
-    verify(logger).debug("Memory pool 'TestPool' at 24% usage, changed from 10% by less "
-        + "than maximum 20% increase (actual increase: 14%) over the last 3.0s");
+    verify(logger).debug("Memory pool '%s' at %s%% usage, changed from %s%% by less than maximum "
+        + "%s%% increase (actual increase: %s%%) over the last %s%s", "TestPool", "24", "10", "20",
+        "14", 3.0D, "s");
 
     /*
      * 4th eval should remove first measurement point, perform check, and not fail because
@@ -173,8 +175,9 @@ public class IncreaseOverTimeFrameThresholdConditionTest {
         condition.measurements.getLast();
     assertThat(fourthPoint.getTimestamp(), is(5002L));
 
-    verify(logger).debug("Memory pool 'TestPool' at 23% usage, changed from 5% by less "
-        + "than maximum 20% increase (actual increase: 18%) over the last 3.1s");
+    verify(logger).debug("Memory pool '%s' at %s%% usage, changed from %s%% by less than maximum "
+        + "%s%% increase (actual increase: %s%%) over the last %s%s", "TestPool", "23", "5", "20",
+        "18", 3.1D, "s");
   }
 
   private IncreaseOverTimeFrameUsageThresholdCondition createCondition(final double delta,
