@@ -263,8 +263,7 @@ public class Configuration {
     HEAP_MEMORY_USAGE_THRESHOLD("thresholds.heap") {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.heapMemoryUsageThreshold =
-            parseThreshold(Type.HEAP, value);
+        config.heapMemoryUsageThreshold = parseThreshold(Type.HEAP, value);
       }
     },
 
@@ -272,8 +271,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.codeCacheMemoryUsageThreshold =
-            parseThreshold(Type.CODE_CACHE, value);
+        config.codeCacheMemoryUsageThreshold = parseThreshold(Type.CODE_CACHE, value);
       }
     },
 
@@ -281,8 +279,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.permGenMemoryUsageThreshold =
-            parseThreshold(Type.PERM_GEN, value);
+        config.permGenMemoryUsageThreshold = parseThreshold(Type.PERM_GEN, value);
       }
     },
 
@@ -290,8 +287,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.metaSpaceMemoryUsageThreshold =
-            parseThreshold(Type.METASPACE, value);
+        config.metaSpaceMemoryUsageThreshold = parseThreshold(Type.METASPACE, value);
       }
     },
 
@@ -308,8 +304,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.edenSpaceMemoryUsageThreshold =
-            parseThreshold(Type.EDEN_SPACE, value);
+        config.edenSpaceMemoryUsageThreshold = parseThreshold(Type.EDEN_SPACE, value);
       }
     },
 
@@ -317,8 +312,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.survivorSpaceMemoryUsageThreshold =
-            parseThreshold(Type.SURVIVOR_SPACE, value);
+        config.survivorSpaceMemoryUsageThreshold = parseThreshold(Type.SURVIVOR_SPACE, value);
       }
     },
 
@@ -326,8 +320,7 @@ public class Configuration {
       @Override
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
-        config.oldGenSpaceMemoryUsageThreshold =
-            parseThreshold(Type.OLD_GEN, value);
+        config.oldGenSpaceMemoryUsageThreshold = parseThreshold(Type.OLD_GEN, value);
       }
     },
 
