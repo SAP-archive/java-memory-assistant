@@ -184,14 +184,14 @@ Escaping needs to be performed both in token as well as in the `fixed` part of a
 
 ## Integration tests
 
-End-to-end integration tests are run automatically in the JVM running maven.
+End-to-end integration tests are run automatically in the JVM running Gradle.
 
 Additionally, the same tests are repeated automatically for each of the [supported JVMs](supported_jvms), provided that the binaries of the JVM are available in the right folder (more on this later).
 
 This repository does *not* contain any JVM binaries, as that would count as distribution and violate most EULAs out there. (Plus, polluting GIT with tons of binaries is bad form.)
 
-JVM for the integration tests have to be placed in folders under the `test-e2e/src/test/resources` directory.
-The `java` executable must be under the `test-e2e/src/test/resources/[jvm_directory]/bin/java` path.
+JVM for the integration tests have to be placed in folders under the `test-e2e/src/test/resources/jdks` directory.
+The `java` executable must be under the `test-e2e/src/test/resources/jdks/[jvm_directory]/bin/java` path.
 The name of the `[jvm_directory]` will given the name to the Gradle `itest` task that will run the integration tests with that JVM.
 
 ## <a href="supported_jvms"></a>Supported JVMs
