@@ -219,6 +219,16 @@ Supported memory pools:
 - `code_cache`
 - `compressed_class`
 
+### OpenJDK 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
 ### Oracle JVM 7.x
 
 Supported memory pools:
@@ -236,6 +246,19 @@ Supported memory pools:
 - `old_gen`
 - `metaspace`
 - `code_cache`
+- `compressed_class`
+
+### Oracle JVM 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
 - `compressed_class`
 
 ### SAP JVM 7.x
@@ -258,6 +281,65 @@ Supported memory pools:
 - `code_cache`
 - `compressed_class`
 
+### SAP Machine 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
+### AdoptOpenJDK HotSpot 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
+### AdoptOpenJDK HotSpot 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
+### Pivotal HotSpot 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
+### AdoptOpenJDK HotSpot 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
 ## Build
 This project should be built with a Java 1.7 JDK.
 Building it with a Java 1.8 JDK will also work, but there will be warnings reporting that the `bootstrap classpath [is] not set in conjunction with -source 1.7`.
@@ -272,6 +354,14 @@ For building behind a proxy, consider setting the proxy-variables as follows:
 ./gradlew -Dhttps.proxyHost=[proxy_hostname] -Dhttps.proxyPort=[proxy_port] -Dhttp.proxyHost=[proxy_hostname] -Dhttp.proxyPort=[proxy_port] clean build
  ```
 where, for example `[proxy_hostname]` is `proxy.wdf.sap.corp` and `[proxy_port]` is `8080`.
+
+## Running the Java Memory Assistant on Java 11
+
+Due to the restrictions introduced by the Java module system with Java 9, the following additional argument must be passed to the `java` command:
+```bash
+java ... --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED ...
+```
+This will allow the Java Memory Assistant to access the `com.sun.management.internal.HotSpotDiagnostic` MBean it uses to trigger the creation of the heap dumps.
 
 ## License
 

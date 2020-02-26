@@ -38,7 +38,18 @@ public interface JavaVirtualMachine {
         MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
         MemoryPool.Type.METASPACE),
 
-    SAP_7_X("SAP AG", "1.7", //
+    ORACLE_11_X("Oracle Corporation", "11", // This also works for OpenJDK 8.x
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
+        MemoryPool.Type.METASPACE),
+
+    ADOPTOPENJDK_HOTSPOT_8_X("AdoptOpenJDK", "1.8", // This also works for OpenJDK 8.x
         MemoryPool.Type.EDEN_SPACE, //
         MemoryPool.Type.SURVIVOR_SPACE, //
         MemoryPool.Type.OLD_GEN, //
@@ -46,12 +57,42 @@ public interface JavaVirtualMachine {
         MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
         MemoryPool.Type.METASPACE),
 
-    SAP_8_X("SAP AG", "1.8", //
+    ADOPTOPENJDK_HOTSPOT_11_X("AdoptOpenJDK", "11", // This also works for OpenJDK 8.x
         MemoryPool.Type.EDEN_SPACE, //
         MemoryPool.Type.SURVIVOR_SPACE, //
         MemoryPool.Type.OLD_GEN, //
         MemoryPool.Type.CODE_CACHE, //
         MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
+        MemoryPool.Type.METASPACE),
+
+    SAP_JVM_7_X("SAP AG", "1.7", //
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE),
+
+    SAP_JVM_8_X("SAP AG", "1.8", //
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE),
+
+    SAP_MACHINE_11_X("SAP SE", "11", //
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.OLD_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
+        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
         MemoryPool.Type.METASPACE);
 
     private final String vendor;

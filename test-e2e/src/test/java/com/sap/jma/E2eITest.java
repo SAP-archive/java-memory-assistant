@@ -52,16 +52,18 @@ public class E2eITest {
   public final TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Rule
-  public final Timeout globalTimeout = new Timeout(30, TimeUnit.SECONDS);
+  public final Timeout globalTimeout = new Timeout(45, TimeUnit.SECONDS);
 
   private final List<Process> processes = new LinkedList<>();
 
   private File heapDumpFolder;
   private String javaPath;
   private String jvm;
+  private String[] additionalJvmArguments;
   private File jarsDir;
   private File dumpsDir;
   private String version;
+  private String jvmVersion;
 
   private static ProcessCondition hookFileCreatedIn(final File heapDumpFolder, final long timeout,
                                                     final TimeUnit timeUnit) {
@@ -75,9 +77,15 @@ public class E2eITest {
     heapDumpFolder = tempFolder.newFolder("heap_dumps");
 
     jvm = System.getProperty("jvm", "unknown-jvm");
+    jvmVersion = System.getProperty("java.version");
+
     jarsDir = new File(System.getProperty("jarsDir", "build/libs")).getAbsoluteFile();
     dumpsDir = new File(System.getProperty("dumpsDir", "build/oom")).getAbsoluteFile();
     version = System.getProperty("version", "0.0.1-SNAPSHOT");
+
+    additionalJvmArguments = (jvmVersion.startsWith("1.7") || jvmVersion.startsWith("1.8"))
+            ? new String[] {}
+            : new String[] { "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED" };
 
     if (dumpsDir.exists()) {
       if (!dumpsDir.isDirectory()) {
@@ -121,6 +129,7 @@ public class E2eITest {
   @Test
   public void testAgentHeapAllocation() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -139,6 +148,7 @@ public class E2eITest {
   @Test
   public void testAgentBeforeCommand() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -146,7 +156,7 @@ public class E2eITest {
         .withSystemProperty(HEAP_MEMORY_USAGE_THRESHOLD, "5%") //
         .withSystemProperty(Property.EXECUTE_BEFORE_HEAP_DUMP, getHookScriptName()) //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
-        .withSystemProperty("jma-test.allocation", "3MB") //
+        .withSystemProperty("jma-test.allocation", "300MB") //
         .withSystemProperty("jma-test.log", "false") //
         .withEnvironmentProperty("TARGET_FILE_FOLDER", heapDumpFolder.getAbsolutePath()) //
         .buildAndRunUntil(hookFileCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
@@ -157,6 +167,7 @@ public class E2eITest {
   @Test
   public void testAgentAfterCommand() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -165,7 +176,7 @@ public class E2eITest {
         .withSystemProperty(HEAP_MEMORY_USAGE_THRESHOLD, "1%") //
         .withSystemProperty(Property.EXECUTE_AFTER_HEAP_DUMP, getHookScriptName()) //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
-        .withSystemProperty("jma-test.allocation", "3MB") //
+        .withSystemProperty("jma-test.allocation", "300MB") //
         .withSystemProperty("jma-test.log", "false") //
         .withEnvironmentProperty("TARGET_FILE_FOLDER", heapDumpFolder.getAbsolutePath()) //
         .buildAndRunUntil(hookFileCreatedIn(heapDumpFolder, 1, TimeUnit.MINUTES));
@@ -176,6 +187,7 @@ public class E2eITest {
   @Test
   public void testAgentIncrementOverTimeFrame() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(LOG_LEVEL, "DEBUG") //
@@ -193,6 +205,7 @@ public class E2eITest {
   @Test
   public void testAgentAbsoluteThresholdStepWiseAllocation() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -210,6 +223,7 @@ public class E2eITest {
   @Test
   public void testAgentAbsoluteThresholdFixedAllocationOverThreshold() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -217,7 +231,7 @@ public class E2eITest {
         .withSystemProperty(MAX_HEAP_DUMP_FREQUENCY, "1/3s") //
         .withSystemProperty(HEAP_MEMORY_USAGE_THRESHOLD, ">2MB") //
         .withSystemProperty("jma-test.mode", "direct_allocation") //
-        .withSystemProperty("jma-test.allocation", "5MB") //
+        .withSystemProperty("jma-test.allocation", "50MB") //
         .withSystemProperty("jma-test.log", "false") //
         .buildAndRunUntil(timeElapses(20, TimeUnit.SECONDS));
 
@@ -229,6 +243,7 @@ public class E2eITest {
   @Test
   public void testAgentAbsoluteThresholdFixedAllocationUnderThreshold() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
@@ -253,6 +268,7 @@ public class E2eITest {
   public void testAgentNamePattern() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
         .withEnvironmentProperty("test_var", "myHeapDump") //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms20m") //
         .withJvmArgument("-Xmx20m") //
         .withSystemProperty(HEAP_DUMP_NAME, "%env:test_var%_%ts%.hprof") //
@@ -272,6 +288,7 @@ public class E2eITest {
   @Test
   public void testAgentOnShutDownCommand() throws Exception {
     final Process process = createProcessBuilder(heapDumpFolder) //
+        .withJvmArguments(additionalJvmArguments) //
         .withJvmArgument("-Xms8m") //
         .withJvmArgument("-Xmx8m") //
         .withSystemProperty(LOG_LEVEL, "ERROR") //
