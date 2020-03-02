@@ -200,6 +200,29 @@ All JVMs support thresholds for the entire heap ([specified via the `jma.thresho
 The Java Memory Assistant currently supports the following JVMs and settings thresholds for the specific memory areas.
 Trying to run the Java Memory Assistant on an unsupported JVM will lead to the agent disabling itself, but won't impact the rest of the JVM or the application running inside it.
 
+### AdoptOpenJDK HotSpot 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
+### AdoptOpenJDK HotSpot 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
 ### OpenJDK 7.x
 
 Supported memory pools:
@@ -261,6 +284,16 @@ Supported memory pools:
 - `code_heap.profiled_nmethods`
 - `compressed_class`
 
+### Pivotal JDK 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `tenured_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
 ### SAP JVM 7.x
 
 Supported memory pools:
@@ -282,52 +315,6 @@ Supported memory pools:
 - `compressed_class`
 
 ### SAP Machine 11.x
-
-Supported memory pools:
-- `eden`
-- `survivor`
-- `old_gen`
-- `metaspace`
-- `code_cache`
-- `code_heap.non_nmethods`
-- `code_heap.non_profiled_nmethods`
-- `code_heap.profiled_nmethods`
-- `compressed_class`
-
-### AdoptOpenJDK HotSpot 8.x
-
-Supported memory pools:
-- `eden`
-- `survivor`
-- `old_gen`
-- `metaspace`
-- `code_cache`
-- `compressed_class`
-
-### AdoptOpenJDK HotSpot 11.x
-
-Supported memory pools:
-- `eden`
-- `survivor`
-- `old_gen`
-- `metaspace`
-- `code_cache`
-- `code_heap.non_nmethods`
-- `code_heap.non_profiled_nmethods`
-- `code_heap.profiled_nmethods`
-- `compressed_class`
-
-### Pivotal JDK 8.x
-
-Supported memory pools:
-- `eden`
-- `survivor`
-- `tenured_gen`
-- `metaspace`
-- `code_cache`
-- `compressed_class`
-
-### AdoptOpenJDK HotSpot 11.x
 
 Supported memory pools:
 - `eden`
