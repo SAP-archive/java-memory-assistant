@@ -70,6 +70,12 @@ public interface MemoryPool {
       }
     },
 
+    TENURED_GEN("Tenured Gen", NameMatcher.ENDS_WITH) {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
+        return configuration.getTenuredGenSpaceMemoryUsageThreshold();
+      }
+    },
+
     COMPRESSED_CLASS_SPACE("Compressed Class Space") {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getCompressedClassSpaceMemoryUsageThreshold();

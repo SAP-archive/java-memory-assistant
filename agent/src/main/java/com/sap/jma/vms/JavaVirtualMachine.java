@@ -68,6 +68,14 @@ public interface JavaVirtualMachine {
         MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
         MemoryPool.Type.METASPACE),
 
+    PIVOTAL_JDM_8_X("Pivotal Software Inc", "1.8",
+        MemoryPool.Type.EDEN_SPACE, //
+        MemoryPool.Type.SURVIVOR_SPACE, //
+        MemoryPool.Type.TENURED_GEN, //
+        MemoryPool.Type.CODE_CACHE, //
+        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
+        MemoryPool.Type.METASPACE),
+
     SAP_JVM_7_X("SAP AG", "1.7", //
         MemoryPool.Type.EDEN_SPACE, //
         MemoryPool.Type.SURVIVOR_SPACE, //

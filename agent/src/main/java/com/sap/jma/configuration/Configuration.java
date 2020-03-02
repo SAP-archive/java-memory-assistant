@@ -81,6 +81,7 @@ public class Configuration {
   private UsageThresholdConfiguration edenSpaceMemoryUsageThreshold;
   private UsageThresholdConfiguration survivorSpaceMemoryUsageThreshold;
   private UsageThresholdConfiguration oldGenSpaceMemoryUsageThreshold;
+  private UsageThresholdConfiguration tenuredGenSpaceMemoryUsageThreshold;
   private String executeBefore;
   private String executeAfter;
   private String executeOnShutDown;
@@ -161,6 +162,10 @@ public class Configuration {
 
   public UsageThresholdConfiguration getOldGenSpaceMemoryUsageThreshold() {
     return oldGenSpaceMemoryUsageThreshold;
+  }
+
+  public UsageThresholdConfiguration getTenuredGenSpaceMemoryUsageThreshold() {
+    return tenuredGenSpaceMemoryUsageThreshold;
   }
 
   public String getExecuteBefore() {
@@ -308,7 +313,8 @@ public class Configuration {
       }
     },
 
-    CODE_HEAP_NON_PROFILED_NMETHODS_MEMORY_USAGE_THRESHOLD("thresholds.code_heap.non_profiled_nmethods") {
+    CODE_HEAP_NON_PROFILED_NMETHODS_MEMORY_USAGE_THRESHOLD(
+            "thresholds.code_heap.non_profiled_nmethods") {
       @Override
       void doApply(final Configuration config, final String value)
               throws InvalidPropertyValueException {
@@ -363,6 +369,14 @@ public class Configuration {
       void doApply(final Configuration config, final String value)
           throws InvalidPropertyValueException {
         config.oldGenSpaceMemoryUsageThreshold = parseThreshold(Type.OLD_GEN, value);
+      }
+    },
+
+    TENURED_GEN_MEMORY_USAGE_THRESHOLD("thresholds.tenured_gen") {
+      @Override
+      void doApply(final Configuration config, final String value)
+              throws InvalidPropertyValueException {
+        config.tenuredGenSpaceMemoryUsageThreshold = parseThreshold(Type.TENURED_GEN, value);
       }
     },
 

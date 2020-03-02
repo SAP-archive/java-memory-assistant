@@ -317,12 +317,12 @@ Supported memory pools:
 - `code_heap.profiled_nmethods`
 - `compressed_class`
 
-### Pivotal HotSpot 8.x
+### Pivotal JDK 8.x
 
 Supported memory pools:
 - `eden`
 - `survivor`
-- `old_gen`
+- `tenured_gen`
 - `metaspace`
 - `code_cache`
 - `compressed_class`
