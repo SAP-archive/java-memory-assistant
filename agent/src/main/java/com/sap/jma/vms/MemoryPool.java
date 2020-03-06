@@ -24,6 +24,22 @@ public interface MemoryPool {
 
   MemoryUsage getMemoryUsage();
 
+  enum NameMatcher {
+    EQUALS {
+      boolean match(final String defaultName, final String actualName) {
+        return actualName.equals(defaultName);
+      }
+    },
+
+    ENDS_WITH {
+      boolean match(final String defaultName, final String actualName) {
+        return actualName.endsWith(defaultName);
+      }
+    };
+
+    abstract boolean match(final String defaultName, final String actualName);
+  }
+
   /*
    * List of known memory pools found in the various versions of the JVMs with
    * mapping to which configuration entries we can use to set thresholds
@@ -36,21 +52,27 @@ public interface MemoryPool {
       }
     },
 
-    EDEN_SPACE("PS Eden Space") {
+    EDEN_SPACE("Eden Space", NameMatcher.ENDS_WITH) {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getEdenSpaceMemoryUsageThreshold();
       }
     },
 
-    SURVIVOR_SPACE("PS Survivor Space") {
+    SURVIVOR_SPACE("Survivor Space", NameMatcher.ENDS_WITH) {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getSurvivorSpaceMemoryUsageThreshold();
       }
     },
 
-    OLD_GEN("PS Old Gen") {
+    OLD_GEN("Old Gen", NameMatcher.ENDS_WITH) {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getOldGenSpaceMemoryUsageThreshold();
+      }
+    },
+
+    TENURED_GEN("Tenured Gen", NameMatcher.ENDS_WITH) {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
+        return configuration.getTenuredGenSpaceMemoryUsageThreshold();
       }
     },
 
@@ -66,22 +88,46 @@ public interface MemoryPool {
       }
     },
 
+    CODE_HEAP_NON_NMETHODS("CodeHeap 'non-nmethods'") {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
+        return configuration.getCodeHeapNonNMethodsMemoryUsageThreshold();
+      }
+    },
+
+    CODE_HEAP_PROFILED_NMETHODS("CodeHeap 'profiled nmethods'") {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
+        return configuration.getCodeHeapProfiledNMethodsMemoryUsageThreshold();
+      }
+    },
+
+    CODE_HEAP_NON_PROFILED_NMETHODS("CodeHeap 'non-profiled nmethods'") {
+      public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
+        return configuration.getCodeHeapNonProfiledNMethodsMemoryUsageThreshold();
+      }
+    },
+
     METASPACE("Metaspace") {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getMetaspaceMemoryUsageThreshold();
       }
     },
 
-    PERM_GEN("PS Perm Gen") {
+    PERM_GEN("Perm Gen", NameMatcher.ENDS_WITH) {
       public UsageThresholdConfiguration getThreshold(final Configuration configuration) {
         return configuration.getPermGenMemoryUsageThreshold();
       }
     };
 
     private final String defaultName;
+    private final NameMatcher nameMatcher;
 
     Type(final String defaultName) {
+      this(defaultName, NameMatcher.EQUALS);
+    }
+
+    Type(final String defaultName, final NameMatcher nameMatcher) {
       this.defaultName = defaultName;
+      this.nameMatcher = nameMatcher;
     }
 
     public String getDefaultName() {
@@ -92,13 +138,13 @@ public interface MemoryPool {
 
     static Type from(final MemoryPoolMXBean memoryPoolBean) {
       for (final Type type : values()) {
-        if (type.getDefaultName().equals(memoryPoolBean.getName())) {
+        if (type.nameMatcher.match(type.getDefaultName(), memoryPoolBean.getName())) {
           return type;
         }
       }
 
       throw new IllegalArgumentException("No memory pool type found to match memory pool bean: "
-          + memoryPoolBean);
+          + memoryPoolBean.getName());
     }
 
   }

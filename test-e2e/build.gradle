@@ -46,30 +46,31 @@ task copyTestAppJar(type: Copy) {
 
 task itest
 
-def javaExecutable = 'jre/bin/java';
+def javaExecutable = 'bin/java';
 if (OperatingSystem.current().isWindows()) {
     javaExecutable += '.exe'
 }
 
+// Old JDK structure with JRE subfolder
 file('src/test/resources/jdks/')
         .listFiles()
         .findAll { folder -> new File(folder, javaExecutable).isFile() }
         .each { jdkRoot ->
-    final taskName = "itest-${jdkRoot.name}"
-    final javaExecutableFile = new File(jdkRoot, javaExecutable)
+            final taskName = "itest-${jdkRoot.name}"
+            final javaExecutableFile = new File(jdkRoot, javaExecutable)
 
-    tasks.create(name: taskName, type: Test) {
-        include '**/*ITest.class'
-        executable javaExecutableFile
-        systemProperty 'version', "${version}"
-        systemProperty 'jvm', "${jdkRoot.name}"
-        systemProperty 'dumpsDir', dumpsDir
-        systemProperty 'jarsDir', jarsDir
-        systemProperty 'javaExec', javaExecutableFile.absolutePath
-    }
+            tasks.create(name: taskName, type: Test) {
+                include '**/*ITest.class'
+                executable javaExecutableFile
+                systemProperty 'version', "${version}"
+                systemProperty 'jvm', "${jdkRoot.name}"
+                systemProperty 'dumpsDir', dumpsDir
+                systemProperty 'jarsDir', jarsDir
+                systemProperty 'javaExec', javaExecutableFile.absolutePath
+            }
 
-    itest.dependsOn taskName
-}
+            itest.dependsOn taskName
+        }
 
 check.dependsOn itest
 itest.mustRunAfter test

@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.StartedProcess;
 
@@ -55,14 +57,28 @@ public class ProcessBuilder {
     return this;
   }
 
+  public ProcessBuilder withJvmArguments(final String[] values) {
+    if (values != null && values.length > 0) {
+      for (final String value : values) {
+        withJvmArgument(value);
+      }
+    }
+
+    return this;
+  }
+
   public ProcessBuilder withJvmArgument(final String value) {
-    jvmArguments.add(value);
+    if (StringUtils.isNotBlank(value)) {
+      jvmArguments.add(value);
+    }
 
     return this;
   }
 
   public ProcessBuilder withSystemProperty(final String property, final String value) {
-    systemProperties.put(property, value);
+    if (StringUtils.isNotBlank(property)) {
+      systemProperties.put(property, value);
+    }
 
     return this;
   }

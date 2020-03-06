@@ -184,14 +184,14 @@ Escaping needs to be performed both in token as well as in the `fixed` part of a
 
 ## Integration tests
 
-End-to-end integration tests are run automatically in the JVM running maven.
+End-to-end integration tests are run automatically in the JVM running Gradle.
 
 Additionally, the same tests are repeated automatically for each of the [supported JVMs](supported_jvms), provided that the binaries of the JVM are available in the right folder (more on this later).
 
 This repository does *not* contain any JVM binaries, as that would count as distribution and violate most EULAs out there. (Plus, polluting GIT with tons of binaries is bad form.)
 
-JVM for the integration tests have to be placed in folders under the `test-e2e/src/test/resources` directory.
-The `java` executable must be under the `test-e2e/src/test/resources/[jvm_directory]/bin/java` path.
+JVM for the integration tests have to be placed in folders under the `test-e2e/src/test/resources/jdks` directory.
+The `java` executable must be under the `test-e2e/src/test/resources/jdks/[jvm_directory]/bin/java` path.
 The name of the `[jvm_directory]` will given the name to the Gradle `itest` task that will run the integration tests with that JVM.
 
 ## <a href="supported_jvms"></a>Supported JVMs
@@ -199,6 +199,29 @@ The name of the `[jvm_directory]` will given the name to the Gradle `itest` task
 All JVMs support thresholds for the entire heap ([specified via the `jma.thresholds.heap` system property](config_properties)). The specific memory pools, however, depend on the particular JVM.
 The Java Memory Assistant currently supports the following JVMs and settings thresholds for the specific memory areas.
 Trying to run the Java Memory Assistant on an unsupported JVM will lead to the agent disabling itself, but won't impact the rest of the JVM or the application running inside it.
+
+### AdoptOpenJDK HotSpot 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
+### AdoptOpenJDK HotSpot 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
 
 ### OpenJDK 7.x
 
@@ -210,6 +233,16 @@ Supported memory pools:
 - `code_cache`
 
 ### OpenJDK 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
+### OpenJDK 11.x
 
 Supported memory pools:
 - `eden`
@@ -238,6 +271,29 @@ Supported memory pools:
 - `code_cache`
 - `compressed_class`
 
+### Oracle JVM 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
+### Pivotal JDK 8.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `tenured_gen`
+- `metaspace`
+- `code_cache`
+- `compressed_class`
+
 ### SAP JVM 7.x
 
 Supported memory pools:
@@ -258,6 +314,19 @@ Supported memory pools:
 - `code_cache`
 - `compressed_class`
 
+### SAP Machine 11.x
+
+Supported memory pools:
+- `eden`
+- `survivor`
+- `old_gen`
+- `metaspace`
+- `code_cache`
+- `code_heap.non_nmethods`
+- `code_heap.non_profiled_nmethods`
+- `code_heap.profiled_nmethods`
+- `compressed_class`
+
 ## Build
 This project should be built with a Java 1.7 JDK.
 Building it with a Java 1.8 JDK will also work, but there will be warnings reporting that the `bootstrap classpath [is] not set in conjunction with -source 1.7`.
@@ -272,6 +341,14 @@ For building behind a proxy, consider setting the proxy-variables as follows:
 ./gradlew -Dhttps.proxyHost=[proxy_hostname] -Dhttps.proxyPort=[proxy_port] -Dhttp.proxyHost=[proxy_hostname] -Dhttp.proxyPort=[proxy_port] clean build
  ```
 where, for example `[proxy_hostname]` is `proxy.wdf.sap.corp` and `[proxy_port]` is `8080`.
+
+## Running the Java Memory Assistant on Java 11
+
+Due to the restrictions introduced by the Java module system with Java 9, the following additional argument must be passed to the `java` command:
+```bash
+java ... --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED ...
+```
+This will allow the Java Memory Assistant to access the `com.sun.management.internal.HotSpotDiagnostic` MBean it uses to trigger the creation of the heap dumps.
 
 ## License
 

@@ -247,7 +247,7 @@ public class MBeanMonitorTest {
   public static class SapJvm7x extends AbstractJvmTest {
 
     public SapJvm7x() {
-      super(JavaVirtualMachine.Supported.SAP_7_X);
+      super(JavaVirtualMachine.Supported.SAP_JVM_7_X);
     }
 
     @Test
@@ -335,7 +335,7 @@ public class MBeanMonitorTest {
   public static class SapJvm8x extends AbstractJvmTest {
 
     public SapJvm8x() {
-      super(JavaVirtualMachine.Supported.SAP_8_X);
+      super(JavaVirtualMachine.Supported.SAP_JVM_8_X);
     }
 
     @Test
@@ -430,7 +430,7 @@ public class MBeanMonitorTest {
     public void testPermGenTriggersDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getPermGenMemoryUsageThreshold();
-      addMemoryPoolBean("PS Perm Gen", 50L, 30L);
+      addMemoryPoolBean("Perm Gen", 50L, 30L);
 
       subject.start();
       reset(logger);
@@ -439,7 +439,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Perm Gen' "
+          "Heap dump triggered because:\n* Memory pool 'Perm Gen' "
               + "at 60% usage, configured threshold is 20%")));
     }
 
@@ -447,7 +447,7 @@ public class MBeanMonitorTest {
     public void testPermGenDoesNotTriggerDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getPermGenMemoryUsageThreshold();
-      addMemoryPoolBean("PS Perm Gen", 50L, 1L);
+      addMemoryPoolBean("Perm Gen", 50L, 1L);
 
       subject.start();
 
@@ -458,7 +458,7 @@ public class MBeanMonitorTest {
 
     @Test
     public void testPermGenThresholdNotConfigured() throws Exception {
-      addMemoryPoolBean("PS Perm Gen", 50L, 50L);
+      addMemoryPoolBean("Perm Gen", 50L, 50L);
 
       subject.start();
 
@@ -864,7 +864,7 @@ public class MBeanMonitorTest {
     public void testEdenSpaceTriggersDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getEdenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Eden Space", 50L, 30L);
+      addMemoryPoolBean("Eden Space", 50L, 30L);
 
       subject.start();
       reset(logger);
@@ -873,7 +873,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 60% usage, "
+          "Heap dump triggered because:\n* Memory pool 'Eden Space' at 60% usage, "
               + "configured threshold is 20%")));
     }
 
@@ -881,7 +881,7 @@ public class MBeanMonitorTest {
     public void testEdenSpaceDoesNotTriggerDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getEdenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Eden Space", 50L, 1L);
+      addMemoryPoolBean("Eden Space", 50L, 1L);
 
       subject.start();
 
@@ -892,7 +892,7 @@ public class MBeanMonitorTest {
 
     @Test
     public void testEdenSpaceThresholdNotConfigured() throws Exception {
-      addMemoryPoolBean("PS Eden Space", 50L, 50L);
+      addMemoryPoolBean("Eden Space", 50L, 50L);
 
       subject.start();
 
@@ -904,7 +904,7 @@ public class MBeanMonitorTest {
     public void testEdenSpaceAbsoluteConditionTriggersDumpLargerThan() throws Exception {
       doReturn(absoluteThresholdConfiguration(">20B")).when(configuration)
           .getEdenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Eden Space", 500L, 317L);
+      addMemoryPoolBean("Eden Space", 500L, 317L);
 
       subject.start();
       reset(logger);
@@ -913,7 +913,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 317B usage, "
+          "Heap dump triggered because:\n* Memory pool 'Eden Space' at 317B usage, "
               + "configured threshold is larger than 20B")));
     }
 
@@ -921,7 +921,7 @@ public class MBeanMonitorTest {
     public void testEdenSpaceAbsoluteConditionTriggersDumpExactMatch() throws Exception {
       doReturn(absoluteThresholdConfiguration("==20B")).when(configuration)
           .getEdenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Eden Space", 500L, 20L);
+      addMemoryPoolBean("Eden Space", 500L, 20L);
 
       subject.start();
       reset(logger);
@@ -930,7 +930,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 20B usage, "
+          "Heap dump triggered because:\n* Memory pool 'Eden Space' at 20B usage, "
               + "configured threshold is equal to 20B")));
     }
 
@@ -938,7 +938,7 @@ public class MBeanMonitorTest {
     public void testEdenSpaceAbsoluteConditionTriggersDumpSmallerThan() throws Exception {
       doReturn(absoluteThresholdConfiguration("<20B")).when(configuration)
           .getEdenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Eden Space", 500L, 10L);
+      addMemoryPoolBean("Eden Space", 500L, 10L);
 
       subject.start();
       reset(logger);
@@ -947,7 +947,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Eden Space' at 10B usage, "
+          "Heap dump triggered because:\n* Memory pool 'Eden Space' at 10B usage, "
               + "configured threshold is smaller than 20B")));
     }
 
@@ -955,7 +955,7 @@ public class MBeanMonitorTest {
     public void testSurvivorSpaceTriggersDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getSurvivorSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Survivor Space", 50L, 30L);
+      addMemoryPoolBean("Survivor Space", 50L, 30L);
 
       subject.start();
       reset(logger);
@@ -964,7 +964,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Survivor Space' at 60% usage, "
+          "Heap dump triggered because:\n* Memory pool 'Survivor Space' at 60% usage, "
               + "configured threshold is 20%")));
     }
 
@@ -972,7 +972,7 @@ public class MBeanMonitorTest {
     public void testSurvivorSpaceDoesNotTriggerDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getSurvivorSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Survivor Space", 50L, 1L);
+      addMemoryPoolBean("Survivor Space", 50L, 1L);
 
       subject.start();
 
@@ -983,7 +983,7 @@ public class MBeanMonitorTest {
 
     @Test
     public void testSurvivorSpaceThresholdNotConfigured() throws Exception {
-      addMemoryPoolBean("PS Survivor Space", 50L, 50L);
+      addMemoryPoolBean("Survivor Space", 50L, 50L);
 
       subject.start();
 
@@ -995,7 +995,7 @@ public class MBeanMonitorTest {
     public void testOldGenSpaceTriggersDump() throws Exception {
       doReturn(percentageThresholdConfiguration(20d)).when(configuration)
           .getOldGenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Old Gen", 50L, 30L);
+      addMemoryPoolBean("Old Gen", 50L, 30L);
 
       subject.start();
       reset(logger);
@@ -1004,7 +1004,7 @@ public class MBeanMonitorTest {
 
       verify(heapDumpCreator).createHeapDump(any(Date.class));
       verify(logger).info(argThat(Matchers.CharSequenceMatchers.equalTo(
-          "Heap dump triggered because:\n* Memory pool 'PS Old Gen' at 60% usage, "
+          "Heap dump triggered because:\n* Memory pool 'Old Gen' at 60% usage, "
               + "configured threshold is 20%")));
     }
 
@@ -1012,7 +1012,7 @@ public class MBeanMonitorTest {
     public void testOldGenSpaceDoesNotTriggerDump() throws Exception {
       doReturn(percentageThresholdConfiguration(MemoryPool.Type.OLD_GEN, 20d))
           .when(configuration).getOldGenSpaceMemoryUsageThreshold();
-      addMemoryPoolBean("PS Old Gen", 50L, 1L);
+      addMemoryPoolBean("Old Gen", 50L, 1L);
 
       subject.start();
 
@@ -1023,7 +1023,7 @@ public class MBeanMonitorTest {
 
     @Test
     public void testOldGenSpaceThresholdNotConfigured() throws Exception {
-      addMemoryPoolBean("PS Old Gen", 50L, 50L);
+      addMemoryPoolBean("Old Gen", 50L, 50L);
 
       subject.start();
 
