@@ -26,12 +26,14 @@ import com.sap.jma.configuration.Configuration.Property;
 import com.sap.jma.testapi.process.Process;
 import com.sap.jma.testapi.process.ProcessBuilder;
 import com.sap.jma.testapi.process.ProcessCondition;
+import com.sap.jma.utils.RetryRule;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.tools.ant.util.JavaEnvUtils;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -54,6 +56,9 @@ public class E2eITest {
   @Rule
   public final Timeout globalTimeout = new Timeout(45, TimeUnit.SECONDS);
 
+  @Rule
+  public final RetryRule retryRule = RetryRule.create(3);
+
   private final List<Process> processes = new LinkedList<>();
 
   private File heapDumpFolder;
@@ -74,7 +79,8 @@ public class E2eITest {
   public void setup() throws Exception {
     javaPath = System.getProperty("javaExec", JavaEnvUtils.getJreExecutable("java"));
 
-    heapDumpFolder = tempFolder.newFolder("heap_dumps");
+    // Create different folders on retry
+    heapDumpFolder = tempFolder.newFolder("heap_dumps-" + System.currentTimeMillis());
 
     jvm = System.getProperty("jvm", "unknown-jvm");
     jvmVersion = System.getProperty("java.version");
@@ -85,7 +91,10 @@ public class E2eITest {
 
     additionalJvmArguments = (jvmVersion.startsWith("1.7") || jvmVersion.startsWith("1.8"))
             ? new String[] {}
-            : new String[] { "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED" };
+            : new String[] {
+                "--add-opens",
+                "jdk.management/com.sun.management.internal=ALL-UNNAMED"
+            };
 
     if (dumpsDir.exists()) {
       if (!dumpsDir.isDirectory()) {

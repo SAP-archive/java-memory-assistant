@@ -14,10 +14,6 @@ import com.sap.jma.configuration.UsageThresholdConfiguration;
 import com.sap.jma.logging.Logger;
 import com.sap.jma.vms.JavaVirtualMachine;
 import com.sap.jma.vms.MemoryPool;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,22 +51,21 @@ class MBeanMonitor extends Monitor {
   protected void initialize() throws Exception {
     final Configuration configuration = getConfiguration();
 
-    final JavaVirtualMachine jvm = findCurrentJvm();
+    final JavaVirtualMachine jvm = currentJvm();
 
     final UsageThresholdConfiguration heapConfiguration =
         configuration.getHeapMemoryUsageThreshold();
 
     if (heapConfiguration != null) {
       memoryPoolConditions.add(heapConfiguration.toCondition(
-          jvm.getHeapMemoryPool(getMemoryMxBean())));
+          jvm.getHeapMemoryPool()));
     }
 
-    final List<MemoryPoolMXBean> memoryPoolMxBeans = getMemoryPoolMxBeans();
-    for (final MemoryPoolMXBean poolBean : memoryPoolMxBeans) {
-      final String poolName = poolBean.getName();
+    final List<MemoryPool> memoryPools = jvm.getMemoryPools();
+    for (final MemoryPool memoryPool : memoryPools) {
+      final String poolName = memoryPool.getName();
       logger.debug("Memory pool found: %s", poolName);
 
-      final MemoryPool memoryPool = jvm.getMemoryPool(poolBean);
       final UsageThresholdCondition memoryPoolCondition = memoryPool.toCondition(configuration);
 
       if (memoryPoolCondition != null) {
@@ -112,16 +107,8 @@ class MBeanMonitor extends Monitor {
     }
   }
 
-  List<MemoryPoolMXBean> getMemoryPoolMxBeans() {
-    return ManagementFactory.getMemoryPoolMXBeans();
-  }
-
-  MemoryMXBean getMemoryMxBean() {
-    return ManagementFactory.getMemoryMXBean();
-  }
-
   @Override
-  protected void shutdown() throws Exception {
+  protected void shutdown() {
     try {
       if (executorService != null) {
         executorService.shutdownNow();
@@ -132,23 +119,8 @@ class MBeanMonitor extends Monitor {
   }
 
   // VisibleForTesting
-  RuntimeMXBean getRuntimeMxBean() {
-    return ManagementFactory.getRuntimeMXBean();
-  }
-
-  // VisibleForTesting
-  JavaVirtualMachine findCurrentJvm()
-      throws JavaVirtualMachine.UnsupportedJavaVirtualMachineException {
-    final RuntimeMXBean runtimeBean = getRuntimeMxBean();
-    final String specVendor = runtimeBean.getSpecVendor();
-    final String specVersion = runtimeBean.getSpecVersion();
-    final String vmVendor = runtimeBean.getVmVendor();
-    final String vmVersion = runtimeBean.getVmVersion();
-
-    logger.debug("JVM spec vendor: '%s'; spec version: '%s'; vm vendor: '%s'; vm version: '%s'",
-        specVendor, specVersion, vmVendor, vmVersion);
-
-    return JavaVirtualMachine.Supported.find(vmVendor, specVersion);
+  JavaVirtualMachine currentJvm() {
+    return JavaVirtualMachine.Factory.INSTANCE.get(logger);
   }
 
   // VisibleForTesting
