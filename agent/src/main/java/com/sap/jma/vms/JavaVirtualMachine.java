@@ -40,9 +40,9 @@ public interface JavaVirtualMachine {
             }
           });
 
-      final List<MemoryPoolMXBean> memoryPoolMxBeans = ManagementFactory.getMemoryPoolMXBeans();
+      final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
       final List<MemoryPool> supportedMemoryPools = new ArrayList<>();
-      for (final MemoryPoolMXBean memoryPoolBean : memoryPoolMxBeans) {
+      for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
         try {
           final MemoryPool.Type type = MemoryPool.Type.from(memoryPoolBean);
           final MemoryPool memoryPool = new MemoryPoolImpl(type, new Supplier<MemoryUsage>() {
@@ -53,7 +53,8 @@ public interface JavaVirtualMachine {
           });
           supportedMemoryPools.add(memoryPool);
         } catch (final IllegalArgumentException ex) {
-          logger.error(ex.getMessage());
+          logger.warning("The memory pool '%s' is not supported; "
+                  + "the Java Memory Assistant will not monitor it", memoryPoolBean.getName());
         }
       }
 

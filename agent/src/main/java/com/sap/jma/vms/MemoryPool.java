@@ -143,8 +143,7 @@ public interface MemoryPool {
         }
       }
 
-      throw new IllegalArgumentException("No memory pool type found to match memory pool bean: "
-          + memoryPoolBean.getName());
+      throw new IllegalArgumentException();
     }
 
   }
