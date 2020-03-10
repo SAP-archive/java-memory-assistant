@@ -6,174 +6,90 @@
 
 package com.sap.jma.vms;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-
+import com.sap.jma.logging.Logger;
 import com.sap.jma.utils.Supplier;
+
+import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public interface JavaVirtualMachine {
 
-  MemoryPool getMemoryPool(MemoryPoolMXBean memoryPoolBean);
+  class Factory {
 
-  MemoryPool getHeapMemoryPool(final MemoryMXBean memoryBean);
+    public static final Factory INSTANCE = new Factory();
 
-  enum Supported implements JavaVirtualMachine {
+    public JavaVirtualMachine get(final Logger logger) {
+      final RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+      final String specVendor = runtimeBean.getSpecVendor();
+      final String specVersion = runtimeBean.getSpecVersion();
+      final String vmVendor = runtimeBean.getVmVendor();
+      final String vmVersion = runtimeBean.getVmVersion();
 
-    ORACLE_7_X("Oracle Corporation", "1.7", // This also works for OpenJDK 7.x
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.PERM_GEN),
+      final MemoryMXBean memoryMxBean = ManagementFactory.getMemoryMXBean();
+      final MemoryPool heapMemoryPool = new MemoryPoolImpl(MemoryPool.Type.HEAP,
+          new Supplier<MemoryUsage>() {
+            @Override
+            public MemoryUsage get() {
+              return memoryMxBean.getHeapMemoryUsage();
+            }
+          });
 
-    ORACLE_8_X("Oracle Corporation", "1.8", // This also works for OpenJDK 8.x
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.METASPACE),
-
-    ORACLE_11_X("Oracle Corporation", "11", // This also works for OpenJDK 8.x
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
-        MemoryPool.Type.METASPACE),
-
-    ADOPTOPENJDK_HOTSPOT_8_X("AdoptOpenJDK", "1.8", // This also works for OpenJDK 8.x
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.METASPACE),
-
-    ADOPTOPENJDK_HOTSPOT_11_X("AdoptOpenJDK", "11", // This also works for OpenJDK 8.x
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
-        MemoryPool.Type.METASPACE),
-
-    PIVOTAL_JDM_8_X("Pivotal Software Inc", "1.8",
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.TENURED_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.METASPACE),
-
-    SAP_JVM_7_X("SAP AG", "1.7", //
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.METASPACE),
-
-    SAP_JVM_8_X("SAP AG", "1.8", //
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.METASPACE),
-
-    SAP_MACHINE_11_X("SAP SE", "11", //
-        MemoryPool.Type.EDEN_SPACE, //
-        MemoryPool.Type.SURVIVOR_SPACE, //
-        MemoryPool.Type.OLD_GEN, //
-        MemoryPool.Type.CODE_CACHE, //
-        MemoryPool.Type.COMPRESSED_CLASS_SPACE, //
-        MemoryPool.Type.CODE_HEAP_NON_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_NON_PROFILED_NMETHODS, //
-        MemoryPool.Type.CODE_HEAP_PROFILED_NMETHODS, //
-        MemoryPool.Type.METASPACE);
-
-    private final String vendor;
-
-    private final String specVersion;
-
-    private final List<MemoryPool.Type> supportedMemoryPoolTypes;
-
-    Supported(final String vendor, final String specVersion,
-              final MemoryPool.Type... supportedMemoryPoolTypes) {
-      this.vendor = vendor;
-      this.specVersion = specVersion;
-      this.supportedMemoryPoolTypes = unmodifiableList(asList(supportedMemoryPoolTypes));
-    }
-
-    public static JavaVirtualMachine find(final String vendor, final String specVersion)
-        throws UnsupportedJavaVirtualMachineException {
-      for (final Supported jvm : Supported.values()) {
-        if (jvm.vendor.equals(vendor) && jvm.specVersion.equals(specVersion)) {
-          return jvm;
+      final List<MemoryPoolMXBean> memoryPoolMxBeans = ManagementFactory.getMemoryPoolMXBeans();
+      final List<MemoryPool> supportedMemoryPools = new ArrayList<>();
+      for (final MemoryPoolMXBean memoryPoolBean : memoryPoolMxBeans) {
+        try {
+          final MemoryPool.Type type = MemoryPool.Type.from(memoryPoolBean);
+          final MemoryPool memoryPool = new MemoryPoolImpl(type, new Supplier<MemoryUsage>() {
+            @Override
+            public MemoryUsage get() {
+              return memoryPoolBean.getUsage();
+            }
+          });
+          supportedMemoryPools.add(memoryPool);
+        } catch (final IllegalArgumentException ex) {
+          logger.error(ex.getMessage());
         }
       }
 
-      throw new UnsupportedJavaVirtualMachineException(vendor, specVersion);
-    }
+      final StringBuilder sb = new StringBuilder();
+      for (final MemoryPool memoryPool : supportedMemoryPools) {
+        sb.append('\n');
+        sb.append(" * ");
+        sb.append(memoryPool.getName());
+      }
 
-    public List<MemoryPool.Type> getSupportedMemoryPoolTypes() {
-      return supportedMemoryPoolTypes;
-    }
+      logger.debug("JVM spec vendor: '%s'; spec version: '%s'; vm vendor: '%s'; vm version: "
+                      + "'%s'; supported memory pools:%s",
+              specVendor, specVersion, vmVendor, vmVersion, sb.toString());
 
-    @Override
-    public MemoryPool getHeapMemoryPool(final MemoryMXBean memoryBean) {
-      return new MemoryPoolImpl(MemoryPool.Type.HEAP, new Supplier<MemoryUsage>() {
+      final List<MemoryPool> immutableMemoryPools =
+          Collections.unmodifiableList(supportedMemoryPools);
+
+      return new JavaVirtualMachine() {
+
         @Override
-        public MemoryUsage get() {
-          return memoryBean.getHeapMemoryUsage();
+        public List<MemoryPool> getMemoryPools() {
+          return immutableMemoryPools;
         }
-      });
-    }
 
-    @Override
-    public MemoryPool getMemoryPool(final MemoryPoolMXBean memoryPoolBean) {
-      final MemoryPool.Type type = MemoryPool.Type.from(memoryPoolBean);
-
-      boolean found = false;
-      for (final MemoryPool.Type supportedType : getSupportedMemoryPoolTypes()) {
-        if (type == supportedType) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        throw new IllegalStateException(
-            String.format("The memory pool type '%s' is not supported on the JVM type '%s'",
-                type, this));
-      }
-
-      return new MemoryPoolImpl(type, new Supplier<MemoryUsage>() {
         @Override
-        public MemoryUsage get() {
-          return memoryPoolBean.getUsage();
+        public MemoryPool getHeapMemoryPool() {
+          return heapMemoryPool;
         }
-      });
+
+      };
     }
 
   }
 
-  final class UnsupportedJavaVirtualMachineException extends Exception {
-    public UnsupportedJavaVirtualMachineException(String vendor, String specVersion) {
-      super(String.format("JVM with vendor '%s' and spec version '%s' is not supported",
-          vendor, specVersion));
-    }
-  }
+  List<MemoryPool> getMemoryPools();
+
+  MemoryPool getHeapMemoryPool();
 
 }

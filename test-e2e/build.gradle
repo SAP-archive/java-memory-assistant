@@ -67,6 +67,7 @@ file('src/test/resources/jdks/')
                 systemProperty 'dumpsDir', dumpsDir
                 systemProperty 'jarsDir', jarsDir
                 systemProperty 'javaExec', javaExecutableFile.absolutePath
+                ignoreFailures true
             }
 
             itest.dependsOn taskName
