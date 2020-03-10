@@ -63,9 +63,6 @@ class MBeanMonitor extends Monitor {
 
     final List<MemoryPool> memoryPools = jvm.getMemoryPools();
     for (final MemoryPool memoryPool : memoryPools) {
-      final String poolName = memoryPool.getName();
-      logger.debug("Memory pool found: %s", poolName);
-
       final UsageThresholdCondition memoryPoolCondition = memoryPool.toCondition(configuration);
 
       if (memoryPoolCondition != null) {
