@@ -31,12 +31,18 @@ abstract class AbstractUsageThresholdCondition<C extends UsageThresholdConfigura
     this.logger = logger;
   }
 
+  protected abstract String describe();
+
   protected final String getMemoryPoolName() {
     return memoryPool.getName();
   }
 
   public final C getUsageThresholdConfiguration() {
     return configuration;
+  }
+
+  public final String toString() {
+    return describe();
   }
 
 }
