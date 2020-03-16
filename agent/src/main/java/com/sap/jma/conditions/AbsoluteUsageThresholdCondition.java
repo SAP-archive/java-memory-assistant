@@ -73,7 +73,7 @@ public class AbsoluteUsageThresholdCondition extends
   }
 
   @Override
-  public String toString() {
+  public String describe() {
     final AbsoluteUsageThresholdConfiguration usageThreshold = getUsageThresholdConfiguration();
 
     final Comparison comparison = usageThreshold.getComparison();

@@ -19,4 +19,5 @@ public interface UsageThresholdCondition<C extends UsageThresholdConfiguration> 
       super(message);
     }
   }
+
 }

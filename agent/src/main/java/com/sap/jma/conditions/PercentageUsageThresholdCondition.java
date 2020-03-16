@@ -54,7 +54,7 @@ public class PercentageUsageThresholdCondition
   }
 
   @Override
-  public String toString() {
+  public String describe() {
     return String.format("Memory pool '%s' used to %s%% or more", getMemoryPoolName(),
         DECIMAL_FORMAT.format(getUsageThresholdConfiguration().getValue()));
   }

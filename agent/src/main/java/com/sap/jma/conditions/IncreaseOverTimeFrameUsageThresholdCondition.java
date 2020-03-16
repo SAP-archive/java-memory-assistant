@@ -55,6 +55,15 @@ public class IncreaseOverTimeFrameUsageThresholdCondition
   }
 
   @Override
+  public String describe() {
+    return String.format("Memory pool '%s' usage increases by more than %s%% over %s %s",
+            getMemoryPoolName(),
+                DECIMAL_FORMAT.format(getUsageThresholdConfiguration().getDelta()),
+                getUsageThresholdConfiguration().getTimeFrame(),
+                getUsageThresholdConfiguration().getTimeUnit().getLiteral());
+  }
+
+  @Override
   public void evaluate() throws UsageThresholdConditionViolatedException {
     final long now = getClock().getMillis();
 
