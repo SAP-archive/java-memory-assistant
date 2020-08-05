@@ -1,3 +1,4 @@
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP/java-memory-assistant)](https://api.reuse.software/info/github.com/SAP/java-memory-assistant)
 # Java Memory Assistant
 
 A Java agent (as in [`-javaagent`](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/Instrumentation.html)) that automates the generation of heap dumps when thresholds in terms of memory usage of the entire `heap` or single memory pools (e.g., `eden`, `old gen`, etc.) are met.
