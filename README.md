@@ -343,6 +343,12 @@ For building behind a proxy, consider setting the proxy-variables as follows:
  ```
 where, for example `[proxy_hostname]` is `proxy.wdf.sap.corp` and `[proxy_port]` is `8080`.
 
+When adding new code files to the project the build might fail with `Missing header in: [...]`. Run the following command to add a license header to all new files:
+
+```
+./gradlew LicenseFormat
+```
+
 ## Running the Java Memory Assistant on Java 11
 
 Due to the restrictions introduced by the Java module system with Java 9, the following additional argument must be passed to the `java` command:
